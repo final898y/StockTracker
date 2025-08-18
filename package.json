@@ -6,7 +6,9 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "doc": "node scripts/task-doc-cli.js",
+    "doc:generate": "node scripts/generate-task-doc.js"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.85.3",
