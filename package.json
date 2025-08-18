@@ -13,6 +13,7 @@
     "test:coverage": "vitest run --coverage",
     "doc": "node scripts/task-doc-cli.js",
     "doc:generate": "node scripts/generate-task-doc.js",
+    "doc:auto": "node scripts/auto-generate-docs.js",
     "setup:hooks": "node scripts/setup-git-hooks.js",
     "commit:check": "echo '檢查 commit 格式標準...' && git log --oneline -5"
   },

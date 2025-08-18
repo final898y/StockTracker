@@ -1,0 +1,30 @@
+#!/bin/sh
+
+# Git pre-commit hook
+# 在提交前自動檢查並生成任務文檔
+
+echo "🔍 檢查是否有新完成的任務需要生成文檔..."
+
+# 檢查暫存區是否包含 tasks.md 的變更
+if git diff --cached --name-only | grep -q ".kiro/specs/stock-tracker/tasks.md"; then
+    echo "📝 檢測到 tasks.md 變更，檢查是否有新完成的任務..."
+    
+    # 執行自動文檔生成
+    if npm run doc:auto --silent; then
+        echo "✅ 任務文檔自動生成完成"
+        
+        # 如果有新生成的文檔，自動加入暫存區
+        if [ -n "$(git status --porcelain docs/)" ]; then
+            echo "📄 發現新生成的文檔，加入到此次提交..."
+            git add docs/
+            echo "✅ 任務文檔已加入暫存區"
+        fi
+    else
+        echo "❌ 自動文檔生成失敗，但不阻止提交"
+    fi
+else
+    echo "ℹ️  未檢測到 tasks.md 變更，跳過文檔生成"
+fi
+
+# 檢查提交訊息格式（如果存在 commit-msg hook）
+exit 0
