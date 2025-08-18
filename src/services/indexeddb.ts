@@ -5,7 +5,6 @@ import {
   ChartCacheDB, 
   CandlestickData,
   Asset,
-  WatchlistItem,
   PriceData 
 } from '@/types';
 
@@ -115,7 +114,7 @@ export class IndexedDBService {
   /**
    * Add asset to watchlist
    */
-  async addToWatchlist(asset: Asset): Promise<number> {
+  async addToWatchlist(asset: Asset): Promise<IDBValidKey> {
     const watchlistItem: Omit<WatchlistDB, 'id'> = {
       symbol: asset.symbol,
       name: asset.name,

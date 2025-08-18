@@ -20,7 +20,12 @@ vi.mock('../indexeddb', () => ({
 
 describe('WatchlistService', () => {
   let service: WatchlistService;
-  const mockIndexedDBService = indexedDBService as any;
+  const mockIndexedDBService = indexedDBService as {
+    addToWatchlist: ReturnType<typeof vi.fn>;
+    getWatchlist: ReturnType<typeof vi.fn>;
+    removeFromWatchlist: ReturnType<typeof vi.fn>;
+    clearWatchlist: ReturnType<typeof vi.fn>;
+  };
 
   beforeEach(() => {
     service = new WatchlistService();

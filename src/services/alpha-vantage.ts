@@ -1,0 +1,321 @@
+import { 
+  StockSearchResult, 
+  StockDetailsResponse, 
+  ChartDataPoint,
+  ErrorResponse 
+} from '@/types';
+import { ERROR_CODES, API_CONFIG } from '@/constants';
+
+// Alpha Vantage API response interfaces
+interface AlphaVantageSearchResponse {
+  bestMatches: Array<{
+    '1. symbol': string;
+    '2. name': string;
+    '3. type': string;
+    '4. region': string;
+    '5. marketOpen': string;
+    '6. marketClose': string;
+    '7. timezone': string;
+    '8. currency': string;
+    '9. matchScore': string;
+  }>;
+}
+
+interface AlphaVantageQuoteResponse {
+  'Global Quote': {
+    '01. symbol': string;
+    '02. open': string;
+    '03. high': string;
+    '04. low': string;
+    '05. price': string;
+    '06. volume': string;
+    '07. latest trading day': string;
+    '08. previous close': string;
+    '09. change': string;
+    '10. change percent': string;
+  };
+}
+
+interface AlphaVantageTimeSeriesResponse {
+  'Meta Data': {
+    '1. Information': string;
+    '2. Symbol': string;
+    '3. Last Refreshed': string;
+    '4. Interval': string;
+    '5. Output Size': string;
+    '6. Time Zone': string;
+  };
+  'Time Series (Daily)': Record<string, {
+    '1. open': string;
+    '2. high': string;
+    '3. low': string;
+    '4. close': string;
+    '5. volume': string;
+  }>;
+}
+
+export class AlphaVantageClient {
+  private readonly apiKey: string;
+  private readonly baseUrl = 'https://www.alphavantage.co/query';
+  private readonly timeout: number;
+  private readonly maxRetries: number;
+  private readonly retryDelay: number;
+
+  constructor() {
+    this.apiKey = process.env.ALPHA_VANTAGE_API_KEY || '';
+    this.timeout = API_CONFIG.TIMEOUT;
+    this.maxRetries = API_CONFIG.RETRY_ATTEMPTS;
+    this.retryDelay = API_CONFIG.RETRY_DELAY;
+
+    if (!this.apiKey) {
+      console.warn('Alpha Vantage API key not found in environment variables');
+    }
+  }
+
+  /**
+   * Search for US stocks by symbol or company name
+   */
+  async searchStocks(query: string): Promise<StockSearchResult[]> {
+    if (!query.trim()) {
+      return [];
+    }
+
+    try {
+      const response = await this.makeRequest<AlphaVantageSearchResponse>({
+        function: 'SYMBOL_SEARCH',
+        keywords: query.trim(),
+      });
+
+      if (!response.bestMatches) {
+        return [];
+      }
+
+      return response.bestMatches
+        .filter(match => match['3. type'] === 'Equity' && match['4. region'] === 'United States')
+        .slice(0, 10) // Limit to top 10 results
+        .map(match => ({
+          symbol: match['1. symbol'],
+          name: match['2. name'],
+          exchange: 'US', // Alpha Vantage primarily covers US markets
+          currency: match['8. currency'] || 'USD',
+          type: 'stock',
+        }));
+    } catch (error) {
+      console.error('Alpha Vantage search error:', error);
+      throw this.handleError(error);
+    }
+  }
+
+  /**
+   * Get current stock price and details
+   */
+  async getStockDetails(symbol: string): Promise<StockDetailsResponse> {
+    if (!symbol.trim()) {
+      throw new Error('Stock symbol is required');
+    }
+
+    try {
+      const response = await this.makeRequest<AlphaVantageQuoteResponse>({
+        function: 'GLOBAL_QUOTE',
+        symbol: symbol.trim().toUpperCase(),
+      });
+
+      const quote = response['Global Quote'];
+      if (!quote || !quote['01. symbol']) {
+        throw new Error(`Stock not found: ${symbol}`);
+      }
+
+      const price = parseFloat(quote['05. price']);
+      const change = parseFloat(quote['09. change']);
+      const changePercent = parseFloat(quote['10. change percent'].replace('%', ''));
+      const volume = parseInt(quote['06. volume']);
+
+      return {
+        symbol: quote['01. symbol'],
+        name: quote['01. symbol'], // Alpha Vantage doesn't provide company name in quote
+        exchange: 'US',
+        currency: 'USD',
+        price,
+        change,
+        changePercent,
+        volume,
+        marketCap: undefined, // Not available in basic quote
+        timestamp: quote['07. latest trading day'],
+      };
+    } catch (error) {
+      console.error('Alpha Vantage quote error:', error);
+      throw this.handleError(error);
+    }
+  }
+
+  /**
+   * Get historical chart data for a stock
+   */
+  async getChartData(symbol: string): Promise<ChartDataPoint[]> {
+    if (!symbol.trim()) {
+      throw new Error('Stock symbol is required');
+    }
+
+    try {
+      const response = await this.makeRequest<AlphaVantageTimeSeriesResponse>({
+        function: 'TIME_SERIES_DAILY',
+        symbol: symbol.trim().toUpperCase(),
+        outputsize: 'compact', // Last 100 data points
+      });
+
+      const timeSeries = response['Time Series (Daily)'];
+      if (!timeSeries) {
+        throw new Error(`Chart data not found for symbol: ${symbol}`);
+      }
+
+      const chartData: ChartDataPoint[] = [];
+      
+      // Convert Alpha Vantage data to our format
+      Object.entries(timeSeries)
+        .sort(([a], [b]) => new Date(a).getTime() - new Date(b).getTime()) // Sort by date ascending
+        .forEach(([date, data]) => {
+          chartData.push({
+            timestamp: new Date(date).getTime(),
+            open: parseFloat(data['1. open']),
+            high: parseFloat(data['2. high']),
+            low: parseFloat(data['3. low']),
+            close: parseFloat(data['4. close']),
+            volume: parseInt(data['5. volume']),
+          });
+        });
+
+      return chartData;
+    } catch (error) {
+      console.error('Alpha Vantage chart data error:', error);
+      throw this.handleError(error);
+    }
+  }
+
+  /**
+   * Make HTTP request to Alpha Vantage API with retry logic
+   */
+  private async makeRequest<T>(params: Record<string, string>): Promise<T> {
+    const url = new URL(this.baseUrl);
+    url.searchParams.append('apikey', this.apiKey);
+    
+    Object.entries(params).forEach(([key, value]) => {
+      url.searchParams.append(key, value);
+    });
+
+    let lastError: Error | null = null;
+
+    for (let attempt = 1; attempt <= this.maxRetries; attempt++) {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), this.timeout);
+
+        const response = await fetch(url.toString(), {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+            'User-Agent': 'StockTracker/1.0',
+          },
+          signal: controller.signal,
+        });
+
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+
+        // Check for Alpha Vantage API errors
+        if (data['Error Message']) {
+          throw new Error(data['Error Message']);
+        }
+
+        if (data['Note']) {
+          throw new Error('API rate limit exceeded. Please try again later.');
+        }
+
+        return data as T;
+      } catch (error) {
+        lastError = error as Error;
+        console.warn(`Alpha Vantage API attempt ${attempt} failed:`, error);
+
+        if (attempt < this.maxRetries) {
+          await this.delay(this.retryDelay * attempt); // Exponential backoff
+        }
+      }
+    }
+
+    throw lastError || new Error('All retry attempts failed');
+  }
+
+  /**
+   * Handle and standardize errors
+   */
+  private handleError(error: unknown): ErrorResponse {
+    if (error instanceof Error) {
+      if (error.message.includes('rate limit') || error.message.includes('API call frequency')) {
+        return {
+          errorCode: ERROR_CODES.API_RATE_LIMIT,
+          message: 'API rate limit exceeded',
+          details: { originalError: error.message },
+        };
+      }
+
+      if (error.message.includes('not found') || error.message.includes('Invalid API call')) {
+        return {
+          errorCode: ERROR_CODES.ASSET_NOT_FOUND,
+          message: 'Stock not found',
+          details: { originalError: error.message },
+        };
+      }
+
+      if (error.name === 'AbortError' || error.message.includes('timeout')) {
+        return {
+          errorCode: ERROR_CODES.NETWORK_ERROR,
+          message: 'Request timeout',
+          details: { originalError: error.message },
+        };
+      }
+
+      return {
+        errorCode: ERROR_CODES.EXTERNAL_API_ERROR,
+        message: error.message,
+        details: { originalError: error.message },
+      };
+    }
+
+    return {
+      errorCode: ERROR_CODES.EXTERNAL_API_ERROR,
+      message: 'Unknown error occurred',
+      details: { originalError: String(error) },
+    };
+  }
+
+  /**
+   * Utility function for delays
+   */
+  private delay(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  /**
+   * Check if API key is configured
+   */
+  isConfigured(): boolean {
+    return !!this.apiKey;
+  }
+
+  /**
+   * Get API usage info (basic implementation)
+   */
+  getUsageInfo(): { hasApiKey: boolean; provider: string } {
+    return {
+      hasApiKey: this.isConfigured(),
+      provider: 'Alpha Vantage',
+    };
+  }
+}
+
+// Export singleton instance
+export const alphaVantageClient = new AlphaVantageClient();

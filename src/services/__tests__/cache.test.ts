@@ -21,7 +21,17 @@ vi.mock('../indexeddb', () => ({
 
 describe('CacheService', () => {
   let service: CacheService;
-  const mockIndexedDBService = indexedDBService as any;
+  const mockIndexedDBService = indexedDBService as {
+    cachePriceData: ReturnType<typeof vi.fn>;
+    getCachedPrice: ReturnType<typeof vi.fn>;
+    cacheChartData: ReturnType<typeof vi.fn>;
+    getCachedChart: ReturnType<typeof vi.fn>;
+    cleanupExpiredPriceCache: ReturnType<typeof vi.fn>;
+    cleanupExpiredChartCache: ReturnType<typeof vi.fn>;
+    clearPriceCache: ReturnType<typeof vi.fn>;
+    clearChartCache: ReturnType<typeof vi.fn>;
+    getStats: ReturnType<typeof vi.fn>;
+  };
 
   beforeEach(() => {
     service = new CacheService();

@@ -1,6 +1,6 @@
 // Cache service for managing price and chart data caching with TTL
 import { indexedDBService } from './indexeddb';
-import { PriceData, CandlestickData, ChartCacheDB, PriceCacheDB } from '@/types';
+import { PriceData, CandlestickData } from '@/types';
 
 export class CacheService {
   // Default TTL values in minutes
@@ -51,7 +51,7 @@ export class CacheService {
     try {
       const cachedData = await this.getCachedPrice(symbol);
       return cachedData !== null;
-    } catch (error) {
+    } catch {
       return false;
     }
   }
@@ -135,7 +135,7 @@ export class CacheService {
     try {
       const cachedData = await this.getCachedChart(symbol, timeframe);
       return cachedData !== null;
-    } catch (error) {
+    } catch {
       return false;
     }
   }
@@ -321,7 +321,7 @@ export class CacheService {
       // Check if IndexedDB is accessible
       try {
         await indexedDBService.getStats();
-      } catch (error) {
+      } catch {
         issues.push('IndexedDB is not accessible');
       }
       

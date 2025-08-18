@@ -1,7 +1,7 @@
 // Integration tests for IndexedDB service
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { IndexedDBService } from '../indexeddb';
-import { Asset, PriceData, CandlestickData } from '@/types';
+// IndexedDB service integration tests
 
 describe('IndexedDBService Integration Tests', () => {
   let service: IndexedDBService;
@@ -17,19 +17,12 @@ describe('IndexedDBService Integration Tests', () => {
     try {
       await service.clearAllData();
       service.close();
-    } catch (error) {
+    } catch {
       // Ignore cleanup errors
     }
   });
 
   describe('Basic Functionality', () => {
-    const mockAsset: Asset = {
-      symbol: 'AAPL',
-      name: 'Apple Inc.',
-      assetType: 'stock',
-      exchange: 'NASDAQ'
-    };
-
     it('should be able to instantiate the service', () => {
       expect(service).toBeDefined();
       expect(service).toBeInstanceOf(IndexedDBService);
