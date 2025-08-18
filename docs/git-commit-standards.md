@@ -199,3 +199,52 @@ git log --graph --pretty=format:'%h - %an, %ar : %s'
 ---
 *此文件是股票追蹤系統開發規範的一部分*
 *最後更新: 2025-01-18*
+##
+ 自動化約束機制
+
+### 已建立的約束層級
+
+#### 1. Kiro Steering 規則
+- 位置：`.kiro/steering/commit-standards.md`
+- 作用：AI 助手會自動遵循此規則
+- 內容：強制要求使用中文 commit 訊息
+
+#### 2. Git Commit 模板
+- 位置：`.gitmessage`
+- 作用：提供標準格式模板和提醒
+- 設定：`git config commit.template .gitmessage`
+
+#### 3. Commit Hook 驗證
+- 位置：`.githooks/commit-msg`
+- 作用：自動驗證 commit 格式
+- 安裝：`npm run setup:hooks`
+
+#### 4. 檢查腳本
+- 格式檢查：`npm run commit:check`
+- 詳細檢查：`node scripts/check-commit-format.js`
+
+### 設置步驟
+
+1. **安裝 Git Hooks**：
+   ```bash
+   npm run setup:hooks
+   ```
+
+2. **檢查現有格式**：
+   ```bash
+   npm run commit:check
+   ```
+
+3. **驗證設置**：
+   ```bash
+   git commit -m "test: 測試格式驗證"
+   ```
+
+### 多層防護機制
+
+1. **AI 層級**：Kiro Steering 規則約束 AI 行為
+2. **模板層級**：Git 模板提供格式提醒
+3. **驗證層級**：Commit Hook 自動格式檢查
+4. **檢查層級**：腳本工具驗證歷史記錄
+
+這樣可以確保從多個角度防止格式錯誤的發生。

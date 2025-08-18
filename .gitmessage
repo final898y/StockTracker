@@ -1,0 +1,26 @@
+# feat(task-X): [中文標題 - 簡短描述任務內容]
+# 
+# [中文詳細說明]
+# - 實作的具體功能 1
+# - 實作的具體功能 2
+# - 實作的具體功能 3
+# - 對應需求: X.X, X.X
+# - 相關檔案: src/path/to/files
+# 
+# Co-authored-by: AI Assistant <ai@kiro.dev>
+#
+# 提交類型說明:
+# feat(task-X): 新功能實作
+# fix(task-X): 錯誤修復  
+# docs(task-X): 文件更新
+# test(task-X): 測試相關
+# refactor(task-X): 程式碼重構
+# style(task-X): 程式碼格式調整
+# chore(task-X): 建置或輔助工具變動
+# perf(task-X): 效能優化
+#
+# 重要提醒:
+# - 必須使用中文描述
+# - 標題不超過50字元
+# - 詳細說明每行不超過72字元
+# - 必須包含對應需求和相關檔案

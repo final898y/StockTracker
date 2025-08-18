@@ -105,14 +105,17 @@ Duration   2.16s
 
 ## Commit 訊息
 ```
-feat: implement IndexedDB data storage service
+feat(task-3): 建立IndexedDB資料存儲服務
 
-- Add comprehensive IndexedDB wrapper with watchlist, price cache, and chart cache
-- Implement high-level watchlist and cache management services
-- Add complete test suite with 58 passing tests
-- Configure Vitest testing framework with fake-indexeddb
-- Support TTL-based caching with automatic cleanup
-- Include error handling and performance optimizations
+- 實作IndexedDB包裝器類別用於本地資料存儲
+- 建立追蹤清單的CRUD操作方法  
+- 實作價格和圖表資料的快取機制
+- 撰寫IndexedDB服務的單元測試
+- 配置Vitest測試框架和fake-indexeddb
+- 支援TTL快取機制和自動清理
+- 包含錯誤處理和效能最佳化
+- 對應需求: 1.2, 2.2, 6.3
+- 相關檔案: src/services/, src/test/, vitest.config.ts
 
-Closes: Task 3 - 建立IndexedDB資料存儲服務
+Co-authored-by: AI Assistant <ai@kiro.dev>
 ```
