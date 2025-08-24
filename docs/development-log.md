@@ -11,15 +11,15 @@
 ### 已完成任務 ✅
 - [x] 1. 建立Next.js專案基礎架構
 - [x] 2. 實作資料模型和TypeScript介面
+- [x] 3. 建立IndexedDB資料存儲服務
+- [x] 4. 實作外部API整合服務
+- [x] 5. 建立Next.js API Routes
 - [x] 16. 建立任務文件化系統
 
 ### 進行中任務 🚧
 - 無
 
 ### 待完成任務 📋
-- [ ] 3. 建立IndexedDB資料存儲服務
-- [ ] 4. 實作外部API整合服務
-- [ ] 5. 建立Next.js API Routes
 - [ ] 6. 建立狀態管理和資料服務
 - [ ] 7. 實作核心UI組件
 - [ ] 8. 實作K線圖表功能
@@ -51,6 +51,38 @@
   - 建立核心資料模型介面
   - 定義API回應型別
   - 建立常數定義檔案
+
+#### 任務 3: 建立IndexedDB資料存儲服務 ✅
+- **狀態**: 已完成
+- **文件**: [task-3-indexeddb-service.md](tasks/task-3-indexeddb-service.md)
+- **Git記錄**: [task-3-commits.md](git-commits/task-3-commits.md)
+- **主要成果**:
+  - 實作IndexedDB包裝器類別用於本地資料存儲
+  - 建立追蹤清單的CRUD操作方法
+  - 實作價格和圖表資料的快取機制
+  - 撰寫58個單元測試，100%通過率
+
+#### 任務 4: 實作外部API整合服務 ✅
+- **狀態**: 已完成
+- **文件**: [task-4-external-api-integration.md](tasks/task-4-external-api-integration.md)
+- **Git記錄**: [task-4-commits.md](git-commits/task-4-commits.md)
+- **主要成果**:
+  - 建立Alpha Vantage API客戶端用於美股資料
+  - 建立CoinGecko API客戶端用於加密貨幣資料
+  - 實作圖表資料API客戶端支援多時間範圍
+  - 實作錯誤處理和重試機制
+
+#### 任務 5: 建立Next.js API Routes ✅
+- **狀態**: 已完成
+- **文件**: [task-5-nextjs-api-routes.md](tasks/task-5-nextjs-api-routes.md)
+- **Git記錄**: [task-5-commits.md](git-commits/task-5-commits.md)
+- **主要成果**:
+  - 實作股票相關API端點（搜尋和詳情）
+  - 實作加密貨幣相關API端點和限制策略
+  - 實作圖表資料API端點支援多時間範圍和批量請求
+  - 建立統一的錯誤處理和回應格式標準化
+  - 實作完整的API測試套件（16個測試案例）
+  - 創建詳細的API文件和使用指南
 
 #### 任務 16: 建立任務文件化系統 ✅
 - **狀態**: 已完成
@@ -205,3 +237,58 @@
 
 ### 下一步
 準備進行 API 服務整合，將資料存儲服務與外部 API 連接。
+#
+ 2025-01-24 - Task 5: Next.js API Routes 實作完成
+
+### 實作內容
+完成了完整的 Next.js API Routes 系統，為股票追蹤應用提供後端API服務。
+
+#### 核心API端點
+1. **股票API端點**
+   - `/api/stocks/search`: 股票搜尋功能
+   - `/api/stocks/[symbol]`: 股票詳情查詢
+   - 整合Alpha Vantage API
+   - 完整的輸入驗證和錯誤處理
+
+2. **加密貨幣API端點**
+   - `/api/crypto/search`: 加密貨幣搜尋功能
+   - `/api/crypto/[symbol]`: 加密貨幣詳情查詢
+   - 整合CoinGecko API
+   - 實作API限制和快取策略
+
+3. **圖表資料API端點**
+   - `/api/charts/[symbol]`: K線資料獲取
+   - `/api/charts`: 批量請求和API資訊
+   - 支援多時間範圍（1D, 1W, 1M, 3M, 1Y）
+   - 資料驗證和效能優化
+
+#### 技術特點
+- 統一的BaseApiResponse回應格式
+- 完整的錯誤處理和HTTP狀態碼標準化
+- 全面的輸入驗證和安全考量
+- 16個單元測試案例，100%通過率
+- 詳細的API文件和使用指南
+
+#### 架構優勢
+- RESTful API設計原則
+- 服務層抽象化整合
+- 批量請求支援（最多10個）
+- 自動重試機制和錯誤恢復
+
+### 需求滿足
+✅ 需求 1.1: 股票搜尋和價格顯示  
+✅ 需求 1.4: 錯誤訊息顯示  
+✅ 需求 2.1: 加密貨幣搜尋和價格顯示  
+✅ 需求 2.4: 價格資料更新機制  
+✅ 需求 3.1: K線圖資料顯示  
+✅ 需求 3.2: 多時間範圍支援  
+✅ 需求 8.1-8.5: 完整文件化和Git記錄
+
+### 文件化成果
+- 創建task-5-nextjs-api-routes.md詳細任務文件
+- 創建task-5-commits.md完整Git提交記錄
+- 更新api-endpoints.md API使用指南
+- 更新development-log.md開發日誌
+
+### 下一步
+準備進行狀態管理和資料服務整合，將API端點與前端組件連接。
