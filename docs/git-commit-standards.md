@@ -2,20 +2,36 @@
 
 ## 提交訊息格式
 
-### 標準格式
+### 支援的格式
+
+#### 1. 任務相關提交（推薦）
 ```
 <type>(task-<number>): <簡短描述>
 
 <詳細說明>
 - 具體實作內容 1
 - 具體實作內容 2
-- 對應需求: Requirement <需求編號>
+- 對應需求: <需求編號>
+- 相關檔案: <檔案清單>
+
+Co-authored-by: AI Assistant <ai@kiro.dev>
+```
+
+#### 2. 一般提交（系統級變更）
+```
+<type>: <簡短描述>
+
+<詳細說明>
+- 具體變更內容 1
+- 具體變更內容 2
 - 相關檔案: <檔案清單>
 
 Co-authored-by: AI Assistant <ai@kiro.dev>
 ```
 
 ### 範例
+
+#### 任務相關提交
 ```
 feat(task-16): 建立任務文件化系統
 
@@ -24,15 +40,29 @@ feat(task-16): 建立任務文件化系統
 - 實作任務完成後的自動文件生成機制
 - 建立Git commit標準格式和範例
 - 創建開發日誌追蹤系統
-- 對應需求: Requirement 8.1, 8.2, 8.3, 8.4, 8.5
+- 對應需求: 8.1, 8.2, 8.3, 8.4, 8.5
 - 相關檔案: docs/, scripts/generate-task-doc.js
+
+Co-authored-by: AI Assistant <ai@kiro.dev>
+```
+
+#### 一般提交（重構、系統變更）
+```
+refactor: 移除CLI工具改用AI驅動文件生成系統
+
+簡化文件生成工作流程，提高效率和準確性
+- 刪除task-doc-cli.js互動式命令列工具
+- 更新design.md改為AI驅動的文件生成說明
+- 重寫usage-guide.md為AI驅動的使用指南
+- 移除package.json中相關的npm scripts
+- 相關檔案: scripts/, docs/, .kiro/specs/, package.json
 
 Co-authored-by: AI Assistant <ai@kiro.dev>
 ```
 
 ## 提交類型 (Type)
 
-### 主要類型
+### 任務相關類型
 - `feat(task-XX)`: 新功能實作
 - `fix(task-XX)`: 錯誤修復
 - `refactor(task-XX)`: 程式碼重構（不改變功能）
@@ -41,6 +71,16 @@ Co-authored-by: AI Assistant <ai@kiro.dev>
 - `style(task-XX)`: 程式碼格式調整（不影響功能）
 - `chore(task-XX)`: 建置工具或輔助工具變動
 - `perf(task-XX)`: 效能優化
+
+### 一般類型（系統級變更）
+- `feat`: 新功能或系統功能
+- `fix`: 系統錯誤修復
+- `refactor`: 系統重構或架構調整
+- `test`: 測試系統或框架變更
+- `docs`: 系統文件或規範更新
+- `style`: 全域樣式或格式調整
+- `chore`: 建置系統或工具鏈變更
+- `perf`: 系統效能優化
 
 ### 特殊類型
 - `init`: 專案初始化

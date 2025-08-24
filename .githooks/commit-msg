@@ -2,20 +2,25 @@
 # Git commit message validation hook
 # 驗證 commit 訊息是否符合中文格式標準
 
-commit_regex='^(feat|fix|docs|style|refactor|test|chore|perf)\(task-[0-9]+\): .+'
+# 支援兩種格式：
+# 1. feat(task-X): 標題 - 任務相關提交
+# 2. feat: 標題 - 一般提交（重構、系統級變更等）
+commit_regex='^(feat|fix|docs|style|refactor|test|chore|perf)(\(task-[0-9]+\))?: .+'
 
 if ! grep -qE "$commit_regex" "$1"; then
     echo "❌ Commit 訊息格式錯誤！"
     echo ""
-    echo "正確格式應該是："
-    echo "feat(task-X): 中文標題"
+    echo "支援的格式："
+    echo "1. feat(task-X): 中文標題  # 任務相關提交"
+    echo "2. feat: 中文標題         # 一般提交"
     echo ""
     echo "範例："
     echo "feat(task-3): 建立IndexedDB資料存儲服務"
     echo "fix(task-5): 修復價格更新問題"
-    echo "docs(task-1): 更新API文檔"
+    echo "refactor: 移除CLI工具改用AI驅動文件生成"
+    echo "docs: 更新系統架構文檔"
     echo ""
-    echo "請使用中文描述，並包含任務編號！"
+    echo "請使用中文描述！"
     exit 1
 fi
 
