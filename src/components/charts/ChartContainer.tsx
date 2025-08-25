@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { ResponsiveChart } from './ResponsiveChart';
+import { InteractiveChart } from './InteractiveChart';
 import { ChartLoading } from './ChartLoading';
 import { ChartError } from './ChartError';
 import { useChartData } from '@/hooks/use-chart-data';
@@ -125,22 +125,23 @@ export function ChartContainer({
     timestamp: new Date(point.timestamp * 1000),
   }));
 
+  // 處理時間範圍變更
+  const handleTimeframeChange = (newTimeframe: TimeframeType) => {
+    setTimeframe(newTimeframe);
+  };
+
   return (
-    <div className={className}>
-      <div className="mb-4">
-        <h3 className="text-lg font-semibold text-gray-900">
-          {asset.name} ({asset.symbol})
-        </h3>
-        <p className="text-sm text-gray-600">時間範圍: {timeframe}</p>
-      </div>
-      
-      <ResponsiveChart
-        data={candlesticks}
-        minHeight={minHeight}
-        maxHeight={maxHeight}
-        aspectRatio={aspectRatio}
-        className="border border-gray-200 rounded-lg"
-      />
-    </div>
+    <InteractiveChart
+      asset={asset}
+      data={candlesticks}
+      timeframe={timeframe}
+      onTimeframeChange={handleTimeframeChange}
+      onRefresh={handleRetry}
+      isLoading={isLoading}
+      className={className}
+      minHeight={minHeight}
+      maxHeight={maxHeight}
+      aspectRatio={aspectRatio}
+    />
   );
 }
