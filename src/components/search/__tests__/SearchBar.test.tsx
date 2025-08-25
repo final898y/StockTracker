@@ -77,9 +77,9 @@ describe('SearchBar', () => {
     const input = screen.getByPlaceholderText('搜尋股票或加密貨幣...');
     fireEvent.change(input, { target: { value: 'test' } });
 
-    // 應該顯示清除按鈕
-    const clearButton = screen.getByRole('button');
-    expect(clearButton).toBeInTheDocument();
+    // 應該顯示清除按鈕 - 通過查找 X 圖示來識別清除按鈕
+    const clearIcon = document.querySelector('.lucide-x');
+    expect(clearIcon).toBeInTheDocument();
   });
 
   it('clears input when clear button is clicked', () => {
@@ -92,8 +92,14 @@ describe('SearchBar', () => {
     const input = screen.getByPlaceholderText('搜尋股票或加密貨幣...');
     fireEvent.change(input, { target: { value: 'test' } });
     
-    const clearButton = screen.getByRole('button');
-    fireEvent.click(clearButton);
+    // 通過查找 X 圖示的父按鈕來點擊清除按鈕
+    const clearIcon = document.querySelector('.lucide-x');
+    const clearButton = clearIcon?.closest('button');
+    expect(clearButton).toBeInTheDocument();
+    
+    if (clearButton) {
+      fireEvent.click(clearButton);
+    }
 
     expect(input).toHaveValue('');
   });
