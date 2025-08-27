@@ -21,7 +21,7 @@ export function useCryptoSearch(query: string, options: UseCryptoSearchOptions =
         return { results: [] };
       }
 
-      const response = await fetch(`/api/crypto/search?q=${encodeURIComponent(query.trim())}`);
+      const response = await fetch(`/api/crypto/search?query=${encodeURIComponent(query.trim())}`);
       
       if (!response.ok) {
         throw new Error(`搜尋加密貨幣失敗: ${response.status} ${response.statusText}`);

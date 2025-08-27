@@ -95,7 +95,7 @@ export function SearchBar({
     }
   };
 
-  const showDropdown = isOpen && (hasResults() || searchHistory.length > 0 || loading || error);
+  const showDropdown = isOpen && (hasResults || searchHistory.length > 0 || loading || error);
 
   return (
     <div className={`relative w-full max-w-md ${className}`}>
@@ -155,7 +155,7 @@ export function SearchBar({
           )}
 
           {/* 搜尋結果 */}
-          {!loading && !error && hasResults() && (
+          {!loading && !error && hasResults && (
             <>
               {/* 股票結果 */}
               {stockCount > 0 && (

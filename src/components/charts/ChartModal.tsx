@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useCallback, useState } from 'react';
 import { InteractiveChart } from './InteractiveChart';
 import { useChartStore } from '@/stores/chart-store';
 import { useChartData } from '@/hooks/use-chart-data';
@@ -15,12 +15,18 @@ export function ChartModal({ isOpen, onClose }: ChartModalProps) {
     currentAsset,
     timeframe,
     isFullscreen,
+    autoRefresh,
+    refreshInterval,
     setTimeframe,
     toggleFullscreen,
     setFullscreen,
+    updateLastRefresh,
   } = useChartStore();
 
-  // 使用 React Query 獲取圖表資料
+  const [realTimeEnabled, setRealTimeEnabled] = useState(true);
+  const [lastUpdateTime, setLastUpdateTime] = useState<Date | null>(null);
+
+  // 使用 React Query 獲取圖表資料，支援即時更新
   const {
     data: chartResponse,
     isLoading,
@@ -28,10 +34,30 @@ export function ChartModal({ isOpen, onClose }: ChartModalProps) {
     refetch,
   } = useChartData(currentAsset?.symbol || '', timeframe, {
     enabled: !!currentAsset?.symbol && isOpen,
-    refetchInterval: 5 * 60 * 1000, // 5分鐘自動刷新
+    refetchInterval: realTimeEnabled && autoRefresh ? refreshInterval : undefined,
   });
 
-  // ESC 鍵關閉模態框
+  // 處理即時更新
+  const handleRealTimeToggle = useCallback(() => {
+    setRealTimeEnabled(!realTimeEnabled);
+  }, [realTimeEnabled]);
+
+  // 手動刷新處理
+  const handleRefresh = useCallback(() => {
+    refetch();
+    updateLastRefresh();
+    setLastUpdateTime(new Date());
+  }, [refetch, updateLastRefresh]);
+
+  // 監聽資料更新
+  useEffect(() => {
+    if (chartResponse) {
+      setLastUpdateTime(new Date());
+      updateLastRefresh();
+    }
+  }, [chartResponse, updateLastRefresh]);
+
+  // ESC 鍵關閉模態框和全螢幕控制
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
@@ -46,28 +72,40 @@ export function ChartModal({ isOpen, onClose }: ChartModalProps) {
         event.preventDefault();
         toggleFullscreen();
       }
+      // R 鍵刷新
+      if (event.key === 'r' || event.key === 'R') {
+        if (event.ctrlKey || event.metaKey) {
+          event.preventDefault();
+          handleRefresh();
+        }
+      }
     };
 
     if (isOpen) {
       document.addEventListener('keydown', handleKeyDown);
       // 防止背景滾動
       document.body.style.overflow = 'hidden';
+      
+      // 全螢幕模式下隱藏滾動條
+      if (isFullscreen) {
+        document.documentElement.style.overflow = 'hidden';
+      }
     }
 
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
       document.body.style.overflow = 'unset';
+      document.documentElement.style.overflow = 'unset';
     };
-  }, [isOpen, isFullscreen, onClose, setFullscreen, toggleFullscreen]);
+  }, [isOpen, isFullscreen, onClose, setFullscreen, toggleFullscreen, handleRefresh]);
 
   // 處理時間範圍變更
   const handleTimeframeChange = (newTimeframe: typeof timeframe) => {
     setTimeframe(newTimeframe);
-  };
-
-  // 處理刷新
-  const handleRefresh = () => {
-    refetch();
+    // 切換時間範圍時立即刷新
+    setTimeout(() => {
+      handleRefresh();
+    }, 100);
   };
 
   if (!isOpen || !currentAsset) {
@@ -94,29 +132,69 @@ export function ChartModal({ isOpen, onClose }: ChartModalProps) {
 
       {/* 模態框內容 */}
       <div className={`
-        relative h-full flex flex-col
+        relative h-full flex flex-col transition-all duration-300
         ${isFullscreen 
-          ? 'w-full' 
+          ? 'w-full bg-white' 
           : 'max-w-7xl mx-auto my-4 h-[calc(100vh-2rem)] bg-white rounded-lg shadow-xl'
         }
       `}>
         {/* 標題欄 */}
         <div className={`
           flex items-center justify-between p-4 border-b border-gray-200
-          ${isFullscreen ? 'bg-white' : ''}
+          ${isFullscreen ? 'bg-white shadow-sm' : ''}
         `}>
           <div className="flex items-center space-x-4">
             <h2 className="text-xl font-semibold text-gray-900">
               圖表分析 - {currentAsset.name} ({currentAsset.symbol})
             </h2>
-            {error && (
-              <span className="px-2 py-1 text-xs font-medium text-red-700 bg-red-100 rounded-full">
-                載入失敗
-              </span>
-            )}
+            <div className="flex items-center space-x-2">
+              {error && (
+                <span className="px-2 py-1 text-xs font-medium text-red-700 bg-red-100 rounded-full">
+                  載入失敗
+                </span>
+              )}
+              {isLoading && (
+                <span className="px-2 py-1 text-xs font-medium text-blue-700 bg-blue-100 rounded-full">
+                  載入中
+                </span>
+              )}
+              {realTimeEnabled && (
+                <span className="px-2 py-1 text-xs font-medium text-green-700 bg-green-100 rounded-full flex items-center space-x-1">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                  <span>即時更新</span>
+                </span>
+              )}
+            </div>
           </div>
 
           <div className="flex items-center space-x-2">
+            {/* 即時更新切換 */}
+            <button
+              onClick={handleRealTimeToggle}
+              className={`
+                px-3 py-1.5 text-xs font-medium rounded-md transition-colors
+                ${realTimeEnabled 
+                  ? 'bg-green-100 text-green-700 hover:bg-green-200' 
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }
+              `}
+              title={realTimeEnabled ? '關閉即時更新' : '開啟即時更新'}
+            >
+              {realTimeEnabled ? '即時' : '手動'}
+            </button>
+
+            {/* 手動刷新按鈕 */}
+            <button
+              onClick={handleRefresh}
+              disabled={isLoading}
+              className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-md transition-colors disabled:opacity-50"
+              title="手動刷新 (Ctrl+R)"
+            >
+              <svg className={`w-5 h-5 ${isLoading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+            </button>
+
             {/* 全螢幕切換按鈕 */}
             <button
               onClick={toggleFullscreen}
@@ -187,12 +265,20 @@ export function ChartModal({ isOpen, onClose }: ChartModalProps) {
         <div className="px-4 py-2 bg-gray-50 border-t border-gray-200 text-xs text-gray-600">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <span>快捷鍵: ESC 關閉 • F11 全螢幕</span>
+              <span>快捷鍵: ESC 關閉 • F11 全螢幕 • Ctrl+R 刷新</span>
+              {lastUpdateTime && (
+                <span>最後更新: {lastUpdateTime.toLocaleString('zh-TW')}</span>
+              )}
               {candlesticks.length > 0 && (
-                <span>資料更新時間: {new Date().toLocaleString('zh-TW')}</span>
+                <span>資料點數: {candlesticks.length}</span>
               )}
             </div>
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-4">
+              {realTimeEnabled && (
+                <span className="text-green-600">
+                  自動更新間隔: {Math.floor(refreshInterval / 1000)}秒
+                </span>
+              )}
               {isLoading && (
                 <div className="flex items-center space-x-2">
                   <div className="animate-spin rounded-full h-3 w-3 border-b border-blue-600"></div>

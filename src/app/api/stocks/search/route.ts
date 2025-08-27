@@ -34,18 +34,8 @@ export async function GET(request: NextRequest) {
       }, { status: 400 });
     }
 
-    // Check if Alpha Vantage client is configured
-    if (!alphaVantageClient.isConfigured()) {
-      return NextResponse.json<BaseApiResponse>({
-        success: false,
-        error: {
-          code: ERROR_CODES.EXTERNAL_API_ERROR,
-          message: 'Stock search service is not configured',
-          details: { reason: 'Missing API key' }
-        },
-        timestamp: new Date().toISOString()
-      }, { status: 503 });
-    }
+    // Note: Allow mock data when API key is not configured for development
+    // The client will handle returning mock data internally
 
     // Search for stocks
     const results = await alphaVantageClient.searchStocks(query);

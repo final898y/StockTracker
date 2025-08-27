@@ -110,15 +110,19 @@ export const useSearchStore = create<SearchStore>()(
       // 工具方法
       getAllResults: () => {
         const state = get();
+        const stockResults = state.stockResults || [];
+        const cryptoResults = state.cryptoResults || [];
         return [
-          ...state.stockResults.map(result => ({ ...result, type: 'stock' as const })),
-          ...state.cryptoResults.map(result => ({ ...result, type: 'crypto' as const })),
+          ...stockResults.map(result => ({ ...result, type: 'stock' as const })),
+          ...cryptoResults.map(result => ({ ...result, type: 'crypto' as const })),
         ];
       },
 
       hasResults: () => {
         const state = get();
-        return state.stockResults.length > 0 || state.cryptoResults.length > 0;
+        const stockResults = state.stockResults || [];
+        const cryptoResults = state.cryptoResults || [];
+        return stockResults.length > 0 || cryptoResults.length > 0;
       },
 
       reset: () => {

@@ -129,9 +129,9 @@ export function useUnifiedSearch(options: UseUnifiedSearchOptions = {}) {
     setQuery,
     
     // 統計
-    totalResults: stockResults.length + cryptoResults.length,
-    stockCount: stockResults.length,
-    cryptoCount: cryptoResults.length,
+    totalResults: (stockResults || []).length + (cryptoResults || []).length,
+    stockCount: (stockResults || []).length,
+    cryptoCount: (cryptoResults || []).length,
     
     // 查詢狀態
     isStockLoading: stockQuery.isLoading,

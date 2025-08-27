@@ -80,6 +80,11 @@ export class AlphaVantageClient {
       return [];
     }
 
+    // Return mock data if API key is not configured (for development)
+    if (!this.isConfigured()) {
+      return this.getMockSearchResults(query);
+    }
+
     try {
       const response = await this.makeRequest<AlphaVantageSearchResponse>({
         function: 'SYMBOL_SEARCH',
@@ -112,6 +117,11 @@ export class AlphaVantageClient {
   async getStockDetails(symbol: string): Promise<StockDetailsResponse> {
     if (!symbol.trim()) {
       throw new Error('Stock symbol is required');
+    }
+
+    // Return mock data if API key is not configured (for development)
+    if (!this.isConfigured()) {
+      return this.getMockStockDetails(symbol);
     }
 
     try {
@@ -154,6 +164,11 @@ export class AlphaVantageClient {
   async getChartData(symbol: string): Promise<ChartDataPoint[]> {
     if (!symbol.trim()) {
       throw new Error('Stock symbol is required');
+    }
+
+    // Return mock data if API key is not configured (for development)
+    if (!this.isConfigured()) {
+      return this.getMockChartData(symbol);
     }
 
     try {
@@ -314,6 +329,87 @@ export class AlphaVantageClient {
       hasApiKey: this.isConfigured(),
       provider: 'Alpha Vantage',
     };
+  }
+
+  /**
+   * Mock search results for development (when API key is not configured)
+   */
+  private getMockSearchResults(query: string): StockSearchResult[] {
+    const mockStocks = [
+      { symbol: 'AAPL', name: 'Apple Inc.', exchange: 'NASDAQ', currency: 'USD', type: 'stock' as const },
+      { symbol: 'GOOGL', name: 'Alphabet Inc.', exchange: 'NASDAQ', currency: 'USD', type: 'stock' as const },
+      { symbol: 'MSFT', name: 'Microsoft Corporation', exchange: 'NASDAQ', currency: 'USD', type: 'stock' as const },
+      { symbol: 'TSLA', name: 'Tesla, Inc.', exchange: 'NASDAQ', currency: 'USD', type: 'stock' as const },
+      { symbol: 'AMZN', name: 'Amazon.com, Inc.', exchange: 'NASDAQ', currency: 'USD', type: 'stock' as const },
+      { symbol: 'META', name: 'Meta Platforms, Inc.', exchange: 'NASDAQ', currency: 'USD', type: 'stock' as const },
+      { symbol: 'NVDA', name: 'NVIDIA Corporation', exchange: 'NASDAQ', currency: 'USD', type: 'stock' as const },
+      { symbol: 'NFLX', name: 'Netflix, Inc.', exchange: 'NASDAQ', currency: 'USD', type: 'stock' as const },
+    ];
+
+    const queryLower = query.toLowerCase();
+    return mockStocks.filter(stock => 
+      stock.symbol.toLowerCase().includes(queryLower) || 
+      stock.name.toLowerCase().includes(queryLower)
+    ).slice(0, 5);
+  }
+
+  /**
+   * Mock stock details for development (when API key is not configured)
+   */
+  private getMockStockDetails(symbol: string): StockDetailsResponse {
+    const basePrice = 150 + Math.random() * 200; // Random price between 150-350
+    const change = (Math.random() - 0.5) * 10; // Random change between -5 to +5
+    const changePercent = (change / basePrice) * 100;
+
+    return {
+      symbol: symbol.toUpperCase(),
+      name: `${symbol.toUpperCase()} Company`,
+      exchange: 'NASDAQ',
+      currency: 'USD',
+      price: Math.round(basePrice * 100) / 100,
+      change: Math.round(change * 100) / 100,
+      changePercent: Math.round(changePercent * 100) / 100,
+      volume: Math.floor(Math.random() * 10000000) + 1000000,
+      marketCap: Math.floor(Math.random() * 1000000000000) + 100000000000,
+      timestamp: new Date().toISOString().split('T')[0],
+    };
+  }
+
+  /**
+   * Mock chart data for development (when API key is not configured)
+   */
+  private getMockChartData(symbol: string): ChartDataPoint[] {
+    const data: ChartDataPoint[] = [];
+    const basePrice = 150 + Math.random() * 200;
+    let currentPrice = basePrice;
+    
+    // Generate 30 days of mock data
+    for (let i = 29; i >= 0; i--) {
+      const date = new Date();
+      date.setDate(date.getDate() - i);
+      
+      // Random price movement
+      const change = (Math.random() - 0.5) * 10;
+      currentPrice = Math.max(10, currentPrice + change);
+      
+      const open = currentPrice;
+      const high = open + Math.random() * 5;
+      const low = open - Math.random() * 5;
+      const close = low + Math.random() * (high - low);
+      
+      data.push({
+        timestamp: date.getTime(),
+        open: Math.round(open * 100) / 100,
+        high: Math.round(high * 100) / 100,
+        low: Math.round(low * 100) / 100,
+        close: Math.round(close * 100) / 100,
+        volume: Math.floor(Math.random() * 5000000) + 1000000,
+      });
+      
+      currentPrice = close;
+    }
+    
+    return data;
   }
 }
 

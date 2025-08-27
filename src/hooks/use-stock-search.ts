@@ -21,7 +21,7 @@ export function useStockSearch(query: string, options: UseStockSearchOptions = {
         return { results: [] };
       }
 
-      const response = await fetch(`/api/stocks/search?q=${encodeURIComponent(query.trim())}`);
+      const response = await fetch(`/api/stocks/search?query=${encodeURIComponent(query.trim())}`);
       
       if (!response.ok) {
         throw new Error(`搜尋股票失敗: ${response.status} ${response.statusText}`);

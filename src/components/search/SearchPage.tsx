@@ -8,9 +8,11 @@ import { SearchBar } from './SearchBar';
 import { SearchResults } from './SearchResults';
 import { SearchSuggestions } from './SearchSuggestions';
 
+import { Asset } from '@/types';
+
 interface SearchPageProps {
   onAddToWatchlist?: (asset: StockSearchResult | CryptoSearchResult, type: 'stock' | 'crypto') => void;
-  onViewChart?: (asset: StockSearchResult | CryptoSearchResult, type: 'stock' | 'crypto') => void;
+  onViewChart?: (asset: Asset) => void;
   className?: string;
 }
 
@@ -59,11 +61,17 @@ export function SearchPage({
 
   // 處理查看圖表
   const handleViewChart = (asset: StockSearchResult | CryptoSearchResult, type: 'stock' | 'crypto') => {
-    onViewChart?.(asset, type);
+    const chartAsset: Asset = {
+      symbol: asset.symbol,
+      name: asset.name,
+      assetType: type,
+      exchange: type === 'stock' ? (asset as StockSearchResult).exchange : undefined,
+    };
+    onViewChart?.(chartAsset);
   };
 
-  const showSuggestions = !query && !hasResults() && !loading;
-  const showResults = query && (hasResults() || loading || error);
+  const showSuggestions = !query && !hasResults && !loading;
+  const showResults = query && (hasResults || loading || error);
 
   return (
     <div className={`space-y-6 ${className}`}>
@@ -138,7 +146,7 @@ export function SearchPage({
                 </button>
                 <button
                   onClick={() => handleViewChart(selectedAsset.asset, selectedAsset.type)}
-                  className="px-3 py-1.5 bg-gray-500 hover:bg-gray-600 text-white 
+                  className="px-3 py-1.5 bg-green-500 hover:bg-green-600 text-white 
                            text-sm rounded-md transition-colors"
                 >
                   查看圖表
@@ -157,7 +165,7 @@ export function SearchPage({
       )}
 
       {/* 統計資訊 */}
-      {hasResults() && !loading && (
+      {hasResults && !loading && (
         <div className="max-w-4xl mx-auto">
           <div className="text-center text-sm text-gray-500 dark:text-gray-400">
             找到 {stockResults.length} 個股票和 {cryptoResults.length} 個加密貨幣

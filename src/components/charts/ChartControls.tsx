@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { IChartApi } from 'lightweight-charts';
+import { IChartApi, Time } from 'lightweight-charts';
 import { TimeframeType } from '@/types';
 import { TimeRangeSelector } from './TimeRangeSelector';
 
@@ -38,13 +38,15 @@ export function ChartControls({
     const visibleRange = timeScale.getVisibleRange();
     
     if (visibleRange) {
-      const center = (visibleRange.from + visibleRange.to) / 2;
-      const range = visibleRange.to - visibleRange.from;
+      const fromTime = visibleRange.from as number;
+      const toTime = visibleRange.to as number;
+      const center = (fromTime + toTime) / 2;
+      const range = toTime - fromTime;
       const newRange = range * 0.8; // 縮小20%
       
       timeScale.setVisibleRange({
-        from: center - newRange / 2,
-        to: center + newRange / 2,
+        from: (center - newRange / 2) as Time,
+        to: (center + newRange / 2) as Time,
       });
       setIsAutoFit(false);
     }
@@ -57,13 +59,15 @@ export function ChartControls({
     const visibleRange = timeScale.getVisibleRange();
     
     if (visibleRange) {
-      const center = (visibleRange.from + visibleRange.to) / 2;
-      const range = visibleRange.to - visibleRange.from;
+      const fromTime = visibleRange.from as number;
+      const toTime = visibleRange.to as number;
+      const center = (fromTime + toTime) / 2;
+      const range = toTime - fromTime;
       const newRange = range * 1.25; // 放大25%
       
       timeScale.setVisibleRange({
-        from: center - newRange / 2,
-        to: center + newRange / 2,
+        from: (center - newRange / 2) as Time,
+        to: (center + newRange / 2) as Time,
       });
       setIsAutoFit(false);
     }
@@ -76,12 +80,14 @@ export function ChartControls({
     const visibleRange = timeScale.getVisibleRange();
     
     if (visibleRange) {
-      const range = visibleRange.to - visibleRange.from;
+      const fromTime = visibleRange.from as number;
+      const toTime = visibleRange.to as number;
+      const range = toTime - fromTime;
       const shift = range * 0.2; // 移動20%的範圍
       
       timeScale.setVisibleRange({
-        from: visibleRange.from - shift,
-        to: visibleRange.to - shift,
+        from: (fromTime - shift) as Time,
+        to: (toTime - shift) as Time,
       });
       setIsAutoFit(false);
     }
@@ -94,12 +100,14 @@ export function ChartControls({
     const visibleRange = timeScale.getVisibleRange();
     
     if (visibleRange) {
-      const range = visibleRange.to - visibleRange.from;
+      const fromTime = visibleRange.from as number;
+      const toTime = visibleRange.to as number;
+      const range = toTime - fromTime;
       const shift = range * 0.2; // 移動20%的範圍
       
       timeScale.setVisibleRange({
-        from: visibleRange.from + shift,
-        to: visibleRange.to + shift,
+        from: (fromTime + shift) as Time,
+        to: (toTime + shift) as Time,
       });
       setIsAutoFit(false);
     }

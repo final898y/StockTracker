@@ -53,7 +53,7 @@ export const useWatchlistStore = create<WatchlistStore>()(
             }
 
             // 添加到 IndexedDB
-            await watchlistService.addToWatchlist(asset);
+            await watchlistService.addAsset(asset);
             
             // 創建新的追蹤項目
             const newItem: WatchlistItem = {
@@ -77,7 +77,7 @@ export const useWatchlistStore = create<WatchlistStore>()(
             set({ loading: true, error: null });
             
             // 從 IndexedDB 移除
-            await watchlistService.removeFromWatchlist(symbol);
+            await watchlistService.removeAsset(symbol);
             
             set((state) => ({
               items: state.items.filter(item => item.asset.symbol !== symbol),
@@ -94,19 +94,8 @@ export const useWatchlistStore = create<WatchlistStore>()(
           try {
             set({ loading: true, error: null });
             
-            // 從 IndexedDB 載入
-            const watchlistData = await watchlistService.getWatchlist();
-            
-            // 轉換為 WatchlistItem 格式
-            const items: WatchlistItem[] = watchlistData.map(item => ({
-              asset: {
-                symbol: item.symbol,
-                name: item.name,
-                assetType: item.assetType,
-                exchange: item.exchange,
-              },
-              addedAt: item.addedAt,
-            }));
+            // 從 IndexedDB 載入（包含價格資料）
+            const items = await watchlistService.getWatchlistWithPrices();
 
             set({ items, loading: false });
           } catch (error) {
