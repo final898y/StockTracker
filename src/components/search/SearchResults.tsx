@@ -5,8 +5,8 @@ import { StockSearchResult, CryptoSearchResult } from '@/types';
 import { TrendingUpIcon, CoinsIcon, PlusIcon } from 'lucide-react';
 
 interface SearchResultsProps {
-  stockResults: StockSearchResult[];
-  cryptoResults: CryptoSearchResult[];
+  stockResults?: StockSearchResult[];
+  cryptoResults?: CryptoSearchResult[];
   loading: boolean;
   error?: string;
   onAddToWatchlist?: (asset: StockSearchResult | CryptoSearchResult, type: 'stock' | 'crypto') => void;
@@ -23,7 +23,10 @@ export function SearchResults({
   onViewChart,
   className = ""
 }: SearchResultsProps) {
-  const hasResults = stockResults.length > 0 || cryptoResults.length > 0;
+  // 防護措施：確保 results 不為 undefined
+  const safeStockResults = stockResults || [];
+  const safeCryptoResults = cryptoResults || [];
+  const hasResults = safeStockResults.length > 0 || safeCryptoResults.length > 0;
 
   if (loading) {
     return (
@@ -65,17 +68,17 @@ export function SearchResults({
   return (
     <div className={`space-y-6 ${className}`}>
       {/* 股票結果 */}
-      {stockResults.length > 0 && (
+      {safeStockResults.length > 0 && (
         <div>
           <div className="flex items-center space-x-2 mb-4">
             <TrendingUpIcon className="h-5 w-5 text-blue-500" />
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-              股票 ({stockResults.length})
+              股票 ({safeStockResults.length})
             </h3>
           </div>
           
           <div className="grid gap-3">
-            {stockResults.map((stock) => (
+            {safeStockResults.map((stock) => (
               <div
                 key={stock.symbol}
                 className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 
@@ -130,17 +133,17 @@ export function SearchResults({
       )}
 
       {/* 加密貨幣結果 */}
-      {cryptoResults.length > 0 && (
+      {safeCryptoResults.length > 0 && (
         <div>
           <div className="flex items-center space-x-2 mb-4">
             <CoinsIcon className="h-5 w-5 text-orange-500" />
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-              加密貨幣 ({cryptoResults.length})
+              加密貨幣 ({safeCryptoResults.length})
             </h3>
           </div>
           
           <div className="grid gap-3">
-            {cryptoResults.map((crypto) => (
+            {safeCryptoResults.map((crypto) => (
               <div
                 key={crypto.id}
                 className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 

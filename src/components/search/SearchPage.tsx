@@ -168,7 +168,7 @@ export function SearchPage({
       {hasResults && !loading && (
         <div className="max-w-4xl mx-auto">
           <div className="text-center text-sm text-gray-500 dark:text-gray-400">
-            找到 {stockResults.length} 個股票和 {cryptoResults.length} 個加密貨幣
+            找到 {(stockResults || []).length} 個股票和 {(cryptoResults || []).length} 個加密貨幣
           </div>
         </div>
       )}
