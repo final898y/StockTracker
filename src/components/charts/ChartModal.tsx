@@ -32,7 +32,7 @@ export function ChartModal({ isOpen, onClose }: ChartModalProps) {
     isLoading,
     error,
     refetch,
-  } = useChartData(currentAsset?.symbol || '', timeframe, {
+  } = useChartData(currentAsset?.symbol || '', timeframe, currentAsset?.assetType || 'stock', {
     enabled: !!currentAsset?.symbol && isOpen,
     refetchInterval: realTimeEnabled && autoRefresh ? refreshInterval : undefined,
   });

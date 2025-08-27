@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { ChartResponse, TimeframeType } from '@/types';
+import { ChartResponse, TimeframeType, AssetType } from '@/types';
 
 interface UseChartDataOptions {
   enabled?: boolean;
@@ -11,6 +11,7 @@ interface UseChartDataOptions {
 export function useChartData(
   symbol: string,
   timeframe: TimeframeType,
+  assetType: AssetType,
   options: UseChartDataOptions = {}
 ) {
   const {
@@ -21,10 +22,10 @@ export function useChartData(
   } = options;
 
   return useQuery({
-    queryKey: ['chart-data', symbol, timeframe],
+    queryKey: ['chart-data', symbol, timeframe, assetType],
     queryFn: async (): Promise<ChartResponse> => {
       const response = await fetch(
-        `/api/charts/${encodeURIComponent(symbol)}?timeframe=${timeframe}`
+        `/api/charts/${encodeURIComponent(symbol)}?timeframe=${timeframe}&assetType=${assetType}`
       );
       
       if (!response.ok) {
@@ -39,7 +40,7 @@ export function useChartData(
 
       return data.data;
     },
-    enabled: enabled && symbol.trim().length > 0,
+    enabled: enabled && symbol.trim().length > 0 && assetType !== undefined,
     refetchInterval,
     staleTime,
     gcTime,

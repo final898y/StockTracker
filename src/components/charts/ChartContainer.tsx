@@ -33,7 +33,7 @@ export function ChartContainer({
     isLoading,
     error,
     refetch,
-  } = useChartData(asset.symbol, timeframe, {
+  } = useChartData(asset.symbol, timeframe, asset.assetType, {
     enabled: !!asset.symbol,
     refetchInterval: 5 * 60 * 1000, // 5分鐘自動刷新
   });

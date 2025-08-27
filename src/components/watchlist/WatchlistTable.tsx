@@ -1,8 +1,9 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
 import { WatchlistItem } from '@/types';
-import { TrendingUpIcon, TrendingDownIcon, TrashIcon, BarChart3Icon } from 'lucide-react';
+import { TrendingUpIcon, TrendingDownIcon, TrashIcon, BarChart3Icon, ExternalLinkIcon } from 'lucide-react';
 
 interface WatchlistTableProps {
   items: WatchlistItem[];
@@ -126,21 +127,28 @@ export function WatchlistTable({
                   className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                 >
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center space-x-3">
+                    <Link 
+                      href={`/asset/${item.asset.symbol}?type=${item.asset.assetType}`}
+                      className="flex items-center space-x-3 hover:bg-gray-50 dark:hover:bg-gray-700 
+                               rounded-lg p-2 -m-2 transition-colors group"
+                    >
                       <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-medium ${
                         item.asset.assetType === 'stock' ? 'bg-blue-500' : 'bg-orange-500'
                       }`}>
                         {item.asset.symbol.charAt(0)}
                       </div>
-                      <div>
-                        <div className="font-medium text-gray-900 dark:text-white">
-                          {item.asset.symbol}
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-2">
+                          <span className="font-medium text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400">
+                            {item.asset.symbol}
+                          </span>
+                          <ExternalLinkIcon className="h-3 w-3 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
                         </div>
                         <div className="text-sm text-gray-500 dark:text-gray-400">
                           {item.asset.name}
                         </div>
                       </div>
-                    </div>
+                    </Link>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right">
                     {item.currentPrice ? (
@@ -211,21 +219,28 @@ export function WatchlistTable({
             className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700"
           >
             <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center space-x-3">
+              <Link 
+                href={`/asset/${item.asset.symbol}?type=${item.asset.assetType}`}
+                className="flex items-center space-x-3 flex-1 hover:bg-gray-50 dark:hover:bg-gray-700 
+                         rounded-lg p-2 -m-2 transition-colors group"
+              >
                 <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-medium ${
                   item.asset.assetType === 'stock' ? 'bg-blue-500' : 'bg-orange-500'
                 }`}>
                   {item.asset.symbol.charAt(0)}
                 </div>
-                <div>
-                  <div className="font-medium text-gray-900 dark:text-white">
-                    {item.asset.symbol}
+                <div className="flex-1">
+                  <div className="flex items-center space-x-2">
+                    <span className="font-medium text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400">
+                      {item.asset.symbol}
+                    </span>
+                    <ExternalLinkIcon className="h-3 w-3 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
                   </div>
                   <div className="text-sm text-gray-500 dark:text-gray-400">
                     {item.asset.name}
                   </div>
                 </div>
-              </div>
+              </Link>
               <div className="flex items-center space-x-2">
                 {onViewChart && (
                   <button
