@@ -47,23 +47,22 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
+    <div className="min-h-screen bg-gradient-to-br from-primary/5 to-primary/10">
       {/* 導航欄 */}
-      <nav className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <nav className="bg-background/80 backdrop-blur-sm border-b border-border">
+        <div className="container-responsive">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-3">
-              <div className="flex items-center justify-center w-8 h-8 bg-blue-500 rounded-lg">
-                <TrendingUpIcon className="h-5 w-5 text-white" />
+              <div className="flex items-center justify-center w-8 h-8 bg-primary rounded-lg">
+                <TrendingUpIcon className="h-5 w-5 text-primary-foreground" />
               </div>
-              <span className="text-xl font-bold text-gray-900 dark:text-white">
+              <span className="text-xl font-bold text-foreground">
                 股票追蹤器
               </span>
             </div>
             <button
               onClick={handleEnterDashboard}
-              className="flex items-center space-x-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 
-                       text-white rounded-lg transition-colors text-sm font-medium"
+              className="btn btn-primary btn-md flex items-center space-x-2"
             >
               <span>進入應用</span>
               <ArrowRightIcon className="h-4 w-4" />
@@ -73,7 +72,7 @@ export default function Home() {
       </nav>
 
       {/* 主要內容 */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-20">
+      <main className="container-responsive py-12 sm:py-20">
         <div className="text-center mb-16">
           {/* 主標題 */}
           <div className="flex items-center justify-center w-20 h-20 bg-blue-500 rounded-2xl mb-8 mx-auto">
