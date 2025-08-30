@@ -6,9 +6,9 @@ import { Asset, PriceData } from '@/types';
 // Mock the watchlist service
 vi.mock('@/services', () => ({
   watchlistService: {
-    addToWatchlist: vi.fn(),
-    removeFromWatchlist: vi.fn(),
-    getWatchlist: vi.fn(),
+    addAsset: vi.fn(),
+    removeAsset: vi.fn(),
+    getWatchlistWithPrices: vi.fn(),
     clearWatchlist: vi.fn(),
   },
 }));
@@ -35,7 +35,7 @@ describe('WatchlistStore', () => {
         exchange: 'NASDAQ',
       };
 
-      vi.mocked(watchlistService.addToWatchlist).mockResolvedValue();
+      vi.mocked(watchlistService.addAsset).mockResolvedValue();
 
       const { addToWatchlist } = useWatchlistStore.getState();
       
@@ -44,7 +44,7 @@ describe('WatchlistStore', () => {
       // Get updated state after the async operation
       const { items } = useWatchlistStore.getState();
 
-      expect(watchlistService.addToWatchlist).toHaveBeenCalledWith(mockAsset);
+      expect(watchlistService.addAsset).toHaveBeenCalledWith(mockAsset);
       expect(items).toHaveLength(1);
       expect(items[0].asset).toEqual(mockAsset);
       expect(items[0].addedAt).toBeInstanceOf(Date);
@@ -80,7 +80,7 @@ describe('WatchlistStore', () => {
       };
 
       const errorMessage = 'Service error';
-      vi.mocked(watchlistService.addToWatchlist).mockRejectedValue(new Error(errorMessage));
+      vi.mocked(watchlistService.addAsset).mockRejectedValue(new Error(errorMessage));
 
       const { addToWatchlist } = useWatchlistStore.getState();
       
@@ -109,7 +109,7 @@ describe('WatchlistStore', () => {
         }],
       });
 
-      vi.mocked(watchlistService.removeFromWatchlist).mockResolvedValue();
+      vi.mocked(watchlistService.removeAsset).mockResolvedValue();
 
       const { removeFromWatchlist } = useWatchlistStore.getState();
       
@@ -118,7 +118,7 @@ describe('WatchlistStore', () => {
       // Get updated state after the async operation
       const { items } = useWatchlistStore.getState();
 
-      expect(watchlistService.removeFromWatchlist).toHaveBeenCalledWith('AAPL');
+      expect(watchlistService.removeAsset).toHaveBeenCalledWith('AAPL');
       expect(items).toHaveLength(0);
     });
   });
@@ -127,23 +127,25 @@ describe('WatchlistStore', () => {
     it('should load watchlist from service successfully', async () => {
       const mockWatchlistData = [
         {
-          id: 1,
-          symbol: 'AAPL',
-          name: 'Apple Inc.',
-          assetType: 'stock' as const,
-          exchange: 'NASDAQ',
+          asset: {
+            symbol: 'AAPL',
+            name: 'Apple Inc.',
+            assetType: 'stock' as const,
+            exchange: 'NASDAQ',
+          },
           addedAt: new Date(),
         },
         {
-          id: 2,
-          symbol: 'BTC',
-          name: 'Bitcoin',
-          assetType: 'crypto' as const,
+          asset: {
+            symbol: 'BTC',
+            name: 'Bitcoin',
+            assetType: 'crypto' as const,
+          },
           addedAt: new Date(),
         },
       ];
 
-      vi.mocked(watchlistService.getWatchlist).mockResolvedValue(mockWatchlistData);
+      vi.mocked(watchlistService.getWatchlistWithPrices).mockResolvedValue(mockWatchlistData);
 
       const { loadWatchlist } = useWatchlistStore.getState();
       
@@ -152,7 +154,7 @@ describe('WatchlistStore', () => {
       // Get updated state after the async operation
       const { items } = useWatchlistStore.getState();
 
-      expect(watchlistService.getWatchlist).toHaveBeenCalled();
+      expect(watchlistService.getWatchlistWithPrices).toHaveBeenCalled();
       expect(items).toHaveLength(2);
       expect(items[0].asset.symbol).toBe('AAPL');
       expect(items[1].asset.symbol).toBe('BTC');
