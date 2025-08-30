@@ -12,7 +12,6 @@ interface UseUnifiedSearchOptions {
 export function useUnifiedSearch(options: UseUnifiedSearchOptions = {}) {
   const {
     enabled = true,
-    debounceMs = 300,
     minQueryLength = 1,
   } = options;
 

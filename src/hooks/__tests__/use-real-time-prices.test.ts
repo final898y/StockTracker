@@ -6,20 +6,20 @@ describe('Real-time Prices Hook', () => {
   });
 
   it('should have proper module structure', async () => {
-    const module = await import('../use-real-time-prices');
-    expect(module.useRealTimePrices).toBeDefined();
-    expect(typeof module.useRealTimePrices).toBe('function');
+    const hookModule = await import('../use-real-time-prices');
+    expect(hookModule.useRealTimePrices).toBeDefined();
+    expect(typeof hookModule.useRealTimePrices).toBe('function');
   });
 
   it('should have watchlist prices hook', async () => {
-    const module = await import('../use-watchlist-prices');
-    expect(module.useWatchlistPrices).toBeDefined();
-    expect(typeof module.useWatchlistPrices).toBe('function');
+    const hookModule = await import('../use-watchlist-prices');
+    expect(hookModule.useWatchlistPrices).toBeDefined();
+    expect(typeof hookModule.useWatchlistPrices).toBe('function');
   });
 
   it('should have unified search hook', async () => {
-    const module = await import('../use-unified-search');
-    expect(module.useUnifiedSearch).toBeDefined();
-    expect(typeof module.useUnifiedSearch).toBe('function');
+    const hookModule = await import('../use-unified-search');
+    expect(hookModule.useUnifiedSearch).toBeDefined();
+    expect(typeof hookModule.useUnifiedSearch).toBe('function');
   });
 });

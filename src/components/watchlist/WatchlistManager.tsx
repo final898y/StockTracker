@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useWatchlistStore } from '@/stores/watchlist-store';
 import { useWatchlistPrices } from '@/hooks/use-watchlist-prices';
-import { StockSearchResult, CryptoSearchResult, WatchlistItem, Asset } from '@/types';
+import { WatchlistItem } from '@/types';
 import { WatchlistTable } from './WatchlistTable';
 import { PriceCard } from './PriceCard';
 import { RefreshCwIcon, GridIcon, ListIcon, PlusIcon } from 'lucide-react';
@@ -28,7 +28,6 @@ export function WatchlistManager({
     items,
     loading: storeLoading,
     error: storeError,
-    addToWatchlist,
     removeFromWatchlist,
     loadWatchlist,
     clearError,
@@ -69,28 +68,9 @@ export function WatchlistManager({
   };
 
   // 處理單個項目重新整理
-  const handleRefreshItem = async (symbol: string) => {
+  const handleRefreshItem = async () => {
     // 這裡可以實作單個項目的重新整理邏輯
     await handleRefresh();
-  };
-
-  // 添加資產到追蹤清單的輔助函數
-  const addAssetToWatchlist = async (
-    asset: StockSearchResult | CryptoSearchResult, 
-    type: 'stock' | 'crypto'
-  ) => {
-    try {
-      const watchlistAsset: Asset = {
-        symbol: asset.symbol,
-        name: asset.name,
-        assetType: type,
-        exchange: type === 'stock' ? (asset as StockSearchResult).exchange : undefined,
-      };
-      
-      await addToWatchlist(watchlistAsset);
-    } catch (error) {
-      console.error('添加到追蹤清單失敗:', error);
-    }
   };
 
   const isLoading = storeLoading || pricesLoading || refreshing;

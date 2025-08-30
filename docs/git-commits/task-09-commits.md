@@ -5,7 +5,7 @@
 ### 提交 1: 實作主儀表板頁面 (9.1)
 ```bash
 git add src/app/dashboard/page.tsx src/app/page.tsx
-git commit -m "feat(task-9.1): 實作主儀表板頁面
+git commit -m "feat(task-9): 1. 實作主儀表板頁面
 
 - 建立響應式主儀表板佈局和導航系統
 - 實作桌面版和行動版不同的導航模式
@@ -23,7 +23,7 @@ Co-authored-by: AI Assistant <ai@kiro.dev>"
 ### 提交 2: 實作資產詳情頁面 (9.2)
 ```bash
 git add src/app/asset/
-git commit -m "feat(task-9.2): 實作資產詳情頁面
+git commit -m "feat(task-9): 2.實作資產詳情頁面
 
 - 建立動態路由 /asset/[symbol] 支援股票和加密貨幣
 - 實作完整的資產資訊展示（價格、圖表、統計資料）
@@ -48,7 +48,7 @@ git commit -m "fix(task-9): 修復圖表 API 和添加導航連結
 - 在追蹤清單表格中添加資產詳情頁面導航連結
 - 在搜尋結果中添加資產詳情頁面導航連結
 - 改進連結樣式，添加 hover 效果和外部連結圖示
-- 修復圖表 API 回傳 "Invalid assetType parameter" 錯誤
+- 修復圖表 API 回傳 Invalid assetType parameter 錯誤
 - 更新相關測試檔案以匹配新的 hook 簽名
 - 對應需求: 3.1, 4.1, 4.2, 8.1, 8.2, 8.3, 8.4, 8.5
 - 相關檔案: src/hooks/, src/components/charts/, src/components/watchlist/, src/components/search/

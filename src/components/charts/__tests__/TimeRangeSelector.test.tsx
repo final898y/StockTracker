@@ -1,7 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { vi } from 'vitest';
 import { TimeRangeSelector } from '../TimeRangeSelector';
-import { TimeframeType } from '@/types';
 
 describe('TimeRangeSelector', () => {
   const mockOnTimeframeChange = vi.fn();

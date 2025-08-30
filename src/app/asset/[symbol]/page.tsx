@@ -7,7 +7,7 @@ import { useChartData } from '@/hooks/use-chart-data';
 import { useWatchlistStore } from '@/stores/watchlist-store';
 import { CandlestickChart, TimeRangeSelector } from '@/components/charts';
 import { LoadingSpinner, ErrorMessage } from '@/components/ui';
-import { Asset, TimeRange } from '@/types';
+import { Asset, TimeframeType, StockDetailsResponse, CryptoDetailsResponse } from '@/types';
 import { 
   ArrowLeftIcon, 
   TrendingUpIcon, 
@@ -25,7 +25,7 @@ export default function AssetDetailPage() {
   
   // 從 URL 查詢參數獲取資產類型，預設為 stock
   const [assetType, setAssetType] = useState<'stock' | 'crypto'>('stock');
-  const [timeRange, setTimeRange] = useState<TimeRange>('1D');
+  const [timeRange, setTimeRange] = useState<TimeframeType>('1D');
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const { items: watchlistItems, addToWatchlist, removeFromWatchlist } = useWatchlistStore();
@@ -50,6 +50,11 @@ export default function AssetDetailPage() {
     error: chartError,
     refetch: refetchChart
   } = useChartData(symbol, timeRange, assetType);
+
+  // 處理返回
+  const handleGoBack = () => {
+    router.back();
+  };
 
   // 從 URL 查詢參數獲取資產類型
   useEffect(() => {
@@ -87,18 +92,13 @@ export default function AssetDetailPage() {
     );
   }
 
-  // 處理返回
-  const handleGoBack = () => {
-    router.back();
-  };
-
   // 處理添加/移除追蹤清單
   const handleToggleWatchlist = async () => {
     if (!priceData) return;
 
     const asset: Asset = {
       symbol: symbol.toUpperCase(),
-      name: priceData.name || symbol.toUpperCase(),
+      name: normalizedData?.name || symbol.toUpperCase(),
       assetType,
     };
 
@@ -122,6 +122,33 @@ export default function AssetDetailPage() {
       setIsRefreshing(false);
     }
   };
+
+  // 標準化價格資料
+  const getNormalizedPriceData = () => {
+    if (!priceData) return null;
+    
+    if (assetType === 'stock') {
+      const stockData = priceData as StockDetailsResponse;
+      return {
+        price: stockData.price,
+        name: stockData.name,
+        change24h: stockData.changePercent,
+        volume: stockData.volume,
+        marketCap: stockData.marketCap,
+      };
+    } else {
+      const cryptoData = priceData as CryptoDetailsResponse;
+      return {
+        price: cryptoData.current_price,
+        name: cryptoData.name,
+        change24h: cryptoData.price_change_percentage_24h,
+        volume: cryptoData.total_volume,
+        marketCap: cryptoData.market_cap,
+      };
+    }
+  };
+
+  const normalizedData = getNormalizedPriceData();
 
   // 格式化價格
   const formatPrice = (price: number) => {
@@ -163,9 +190,9 @@ export default function AssetDetailPage() {
                 <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
                   {symbol.toUpperCase()}
                 </h1>
-                {priceData?.name && (
+                {normalizedData?.name && (
                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                    {priceData.name}
+                    {normalizedData.name}
                   </p>
                 )}
               </div>
@@ -222,7 +249,11 @@ export default function AssetDetailPage() {
         {hasError && (
           <div className="mb-6">
             <ErrorMessage 
-              message={priceError || chartError || '載入資料時發生錯誤'}
+              message={
+                (priceError instanceof Error ? priceError.message : priceError) ||
+                (chartError instanceof Error ? chartError.message : chartError) ||
+                '載入資料時發生錯誤'
+              }
               onRetry={handleRefresh}
             />
           </div>
@@ -245,20 +276,20 @@ export default function AssetDetailPage() {
                 <div className="text-center md:text-left">
                   <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">當前價格</p>
                   <p className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white">
-                    {formatPrice(priceData.price)}
+                    {formatPrice(normalizedData?.price || 0)}
                   </p>
-                  {priceData.change24h !== undefined && (
+                  {normalizedData?.change24h !== undefined && (
                     <div className={`
                       flex items-center justify-center md:justify-start space-x-1 mt-2
-                      ${priceData.change24h >= 0 ? 'text-green-600' : 'text-red-600'}
+                      ${normalizedData.change24h >= 0 ? 'text-green-600' : 'text-red-600'}
                     `}>
-                      {priceData.change24h >= 0 ? (
+                      {normalizedData.change24h >= 0 ? (
                         <TrendingUpIcon className="h-4 w-4" />
                       ) : (
                         <TrendingDownIcon className="h-4 w-4" />
                       )}
                       <span className="font-medium">
-                        {formatChangePercent(priceData.change24h)}
+                        {formatChangePercent(normalizedData.change24h)}
                       </span>
                     </div>
                   )}
@@ -268,20 +299,20 @@ export default function AssetDetailPage() {
               {/* 統計資訊 */}
               <div className="md:col-span-2">
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                  {priceData.volume && (
+                  {normalizedData?.volume && (
                     <div>
                       <p className="text-sm text-gray-600 dark:text-gray-400">成交量</p>
                       <p className="text-lg font-semibold text-gray-900 dark:text-white">
-                        {priceData.volume.toLocaleString()}
+                        {normalizedData.volume.toLocaleString()}
                       </p>
                     </div>
                   )}
                   
-                  {priceData.marketCap && (
+                  {normalizedData?.marketCap && (
                     <div>
                       <p className="text-sm text-gray-600 dark:text-gray-400">市值</p>
                       <p className="text-lg font-semibold text-gray-900 dark:text-white">
-                        ${(priceData.marketCap / 1e9).toFixed(2)}B
+                        ${(normalizedData.marketCap / 1e9).toFixed(2)}B
                       </p>
                     </div>
                   )}
@@ -307,8 +338,8 @@ export default function AssetDetailPage() {
             </h2>
             
             <TimeRangeSelector
-              selectedRange={timeRange}
-              onRangeChange={setTimeRange}
+              currentTimeframe={timeRange}
+              onTimeframeChange={setTimeRange}
             />
           </div>
 
@@ -333,9 +364,14 @@ export default function AssetDetailPage() {
           {chartData && !chartLoading && (
             <div className="h-96 sm:h-[500px]">
               <CandlestickChart
-                data={chartData}
-                symbol={symbol}
-                timeRange={timeRange}
+                data={chartData.data.map(item => ({
+                  openPrice: item.open,
+                  highPrice: item.high,
+                  lowPrice: item.low,
+                  closePrice: item.close,
+                  volume: item.volume,
+                  timestamp: new Date(item.timestamp * 1000),
+                }))}
               />
             </div>
           )}

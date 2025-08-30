@@ -27,7 +27,7 @@ export function CandlestickChart({
 }: CandlestickChartProps) {
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
-  const seriesRef = useRef<any>(null);
+  const seriesRef = useRef<unknown | null>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
   const [tooltipData, setTooltipData] = useState<{
     visible: boolean;
@@ -44,7 +44,7 @@ export function CandlestickChart({
   // 轉換資料格式
   const convertData = useCallback((candlesticks: CandlestickData[]): LWCCandlestickData[] => {
     return candlesticks.map(item => ({
-      time: Math.floor(item.timestamp.getTime() / 1000) as any,
+      time: Math.floor(item.timestamp.getTime() / 1000) as LWCCandlestickData['time'],
       open: item.openPrice,
       high: item.highPrice,
       low: item.lowPrice,
@@ -77,7 +77,7 @@ export function CandlestickChart({
       return;
     }
 
-    const candlestickData = param.seriesData.get(seriesRef.current);
+    const candlestickData = seriesRef.current ? param.seriesData.get(seriesRef.current as never) : null;
     if (!candlestickData) {
       setTooltipData(prev => ({ ...prev, visible: false }));
       return;
@@ -94,7 +94,6 @@ export function CandlestickChart({
       return;
     }
 
-    const containerRect = chartContainerRef.current.getBoundingClientRect();
     const x = param.point?.x || 0;
     const y = param.point?.y || 0;
 
@@ -144,6 +143,7 @@ export function CandlestickChart({
       handleScale: enableInteraction,
     });
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const candlestickSeries = (chart as any).addCandlestickSeries({
       upColor: '#26a69a',
       downColor: '#ef5350',
@@ -177,7 +177,8 @@ export function CandlestickChart({
     if (!seriesRef.current || !data.length) return;
 
     const chartData = convertData(data);
-    seriesRef.current.setData(chartData);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (seriesRef.current as any).setData(chartData);
     
     // 自動調整視圖範圍
     if (chartRef.current) {

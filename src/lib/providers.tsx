@@ -2,12 +2,16 @@
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactNode, useState } from 'react';
+import { NetworkStatus, useGlobalErrorHandler } from '@/components/error';
 
 interface ProvidersProps {
   children: ReactNode;
 }
 
 export function Providers({ children }: ProvidersProps) {
+  // 全域錯誤處理
+  useGlobalErrorHandler();
+
   const [queryClient] = useState(
     () =>
       new QueryClient({
@@ -47,6 +51,7 @@ export function Providers({ children }: ProvidersProps) {
 
   return (
     <QueryClientProvider client={queryClient}>
+      <NetworkStatus />
       {children}
     </QueryClientProvider>
   );

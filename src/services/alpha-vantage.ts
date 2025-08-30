@@ -168,7 +168,7 @@ export class AlphaVantageClient {
 
     // Return mock data if API key is not configured (for development)
     if (!this.isConfigured()) {
-      return this.getMockChartData(symbol);
+      return this.getMockChartData();
     }
 
     try {
@@ -378,7 +378,7 @@ export class AlphaVantageClient {
   /**
    * Mock chart data for development (when API key is not configured)
    */
-  private getMockChartData(symbol: string): ChartDataPoint[] {
+  private getMockChartData(): ChartDataPoint[] {
     const data: ChartDataPoint[] = [];
     const basePrice = 150 + Math.random() * 200;
     let currentPrice = basePrice;

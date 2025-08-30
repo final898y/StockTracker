@@ -392,7 +392,7 @@ export function StaggeredTransition({
     } else {
       setVisibleItems(new Array(children.length).fill(false));
     }
-  }, [show, children.length, delay]);
+  }, [show, children, delay]);
 
   return (
     <div className={className}>

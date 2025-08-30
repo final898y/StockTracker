@@ -19,7 +19,6 @@ export function ThemeToggle({
 }: ThemeToggleProps) {
   const { 
     theme, 
-    actualTheme, 
     isLight, 
     isDark, 
     isSystem,

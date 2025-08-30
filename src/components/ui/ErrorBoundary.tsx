@@ -2,7 +2,7 @@
 
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { ErrorMessage } from './ErrorMessage';
-import { RefreshCwIcon, BugIcon } from 'lucide-react';
+import { BugIcon } from 'lucide-react';
 
 interface ErrorBoundaryProps {
   children: ReactNode;

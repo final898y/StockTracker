@@ -31,7 +31,6 @@ export function SearchBar({
     search,
     clear,
     hasResults,
-    totalResults,
     stockCount,
     cryptoCount,
   } = useUnifiedSearch({
@@ -230,7 +229,7 @@ export function SearchBar({
           )}
 
           {/* 搜尋歷史 */}
-          {!loading && !error && !hasResults() && searchHistory.length > 0 && !query && (
+          {!loading && !error && !hasResults && searchHistory.length > 0 && !query && (
             <div>
               <div className="px-4 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 
                            bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
@@ -253,7 +252,7 @@ export function SearchBar({
           )}
 
           {/* 無結果 */}
-          {!loading && !error && !hasResults() && query && (
+          {!loading && !error && !hasResults && query && (
             <div className="px-4 py-6 text-center text-gray-500 dark:text-gray-400">
               找不到相關結果
             </div>

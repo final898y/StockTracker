@@ -113,7 +113,7 @@ export function SearchPage({
             stockResults={stockResults}
             cryptoResults={cryptoResults}
             loading={loading}
-            error={error}
+            error={error || undefined}
             onAddToWatchlist={handleAddToWatchlist}
             onViewChart={handleViewChart}
           />
