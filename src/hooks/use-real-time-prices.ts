@@ -70,9 +70,9 @@ export function useRealTimePrices(options: UseRealTimePricesOptions = {}) {
   // 清理定時器
   useEffect(() => {
     return () => {
-      const currentInterval = intervalRef.current;
-      if (currentInterval) {
-        clearInterval(currentInterval);
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
       }
     };
   }, []);

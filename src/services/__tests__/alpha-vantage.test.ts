@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { AlphaVantageClient } from '../alpha-vantage';
-import { ERROR_CODES } from '@/constants';
 
 // Mock fetch globally
 const mockFetch = vi.fn();

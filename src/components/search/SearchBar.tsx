@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
+import Image from 'next/image';
 import { useUnifiedSearch } from '@/hooks/use-unified-search';
 import { StockSearchResult, CryptoSearchResult } from '@/types';
 import { SearchIcon, XIcon, ClockIcon } from 'lucide-react';
@@ -205,9 +206,11 @@ export function SearchBar({
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-3">
                           {crypto.image && (
-                            <img
+                            <Image
                               src={crypto.image}
                               alt={crypto.name}
+                              width={24}
+                              height={24}
                               className="w-6 h-6 rounded-full"
                             />
                           )}

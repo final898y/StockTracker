@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { StockSearchResult, CryptoSearchResult } from '@/types';
 import { TrendingUpIcon, CoinsIcon, PlusIcon, ExternalLinkIcon, BarChart3Icon } from 'lucide-react';
 
@@ -173,9 +174,11 @@ export function SearchResults({
                   >
                     <div className="flex items-center space-x-3">
                       {crypto.image ? (
-                        <img
+                        <Image
                           src={crypto.image}
                           alt={crypto.name}
+                          width={40}
+                          height={40}
                           className="w-10 h-10 rounded-full"
                         />
                       ) : (
