@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { InteractiveChart } from './InteractiveChart';
 import { ChartLoading } from './ChartLoading';
 import { ChartError } from './ChartError';
@@ -19,13 +19,16 @@ interface ChartContainerProps {
 
 export function ChartContainer({
   asset,
-  timeframe = '1D',
+  timeframe: initialTimeframe = '1D',
   className = '',
   minHeight = 300,
   maxHeight = 600,
   aspectRatio = 2,
 }: ChartContainerProps) {
   const { setCurrentAsset, setTimeframe, setData, setLoading, setError } = useChartStore();
+  
+  // 內部管理 timeframe 狀態
+  const [currentTimeframe, setCurrentTimeframe] = useState<TimeframeType>(initialTimeframe);
 
   // 使用 React Query 獲取圖表資料
   const {
@@ -33,7 +36,7 @@ export function ChartContainer({
     isLoading,
     error,
     refetch,
-  } = useChartData(asset.symbol, timeframe, asset.assetType, {
+  } = useChartData(asset.symbol, currentTimeframe, asset.assetType, {
     enabled: !!asset.symbol,
     refetchInterval: 5 * 60 * 1000, // 5分鐘自動刷新
   });
@@ -41,8 +44,8 @@ export function ChartContainer({
   // 同步狀態到 store
   useEffect(() => {
     setCurrentAsset(asset);
-    setTimeframe(timeframe);
-  }, [asset, timeframe, setCurrentAsset, setTimeframe]);
+    setTimeframe(currentTimeframe);
+  }, [asset, currentTimeframe, setCurrentAsset, setTimeframe]);
 
   useEffect(() => {
     setLoading(isLoading);
@@ -65,7 +68,7 @@ export function ChartContainer({
         lowPrice: point.low,
         closePrice: point.close,
         volume: point.volume,
-        timestamp: new Date(point.timestamp * 1000),
+        timestamp: new Date(point.timestamp), // timestamp 已經是毫秒
       }));
       
       setData(candlesticks);
@@ -108,7 +111,7 @@ export function ChartContainer({
         <div className="text-center p-6">
           <p className="text-gray-600">暫無圖表資料</p>
           <p className="text-sm text-gray-500 mt-2">
-            {asset.name} ({asset.symbol}) - {timeframe}
+            {asset.name} ({asset.symbol}) - {currentTimeframe}
           </p>
         </div>
       </div>
@@ -122,11 +125,12 @@ export function ChartContainer({
     lowPrice: point.low,
     closePrice: point.close,
     volume: point.volume,
-    timestamp: new Date(point.timestamp * 1000),
+    timestamp: new Date(point.timestamp), // timestamp 已經是毫秒
   }));
 
   // 處理時間範圍變更
   const handleTimeframeChange = (newTimeframe: TimeframeType) => {
+    setCurrentTimeframe(newTimeframe);
     setTimeframe(newTimeframe);
   };
 
@@ -134,7 +138,7 @@ export function ChartContainer({
     <InteractiveChart
       asset={asset}
       data={candlesticks}
-      timeframe={timeframe}
+      timeframe={currentTimeframe}
       onTimeframeChange={handleTimeframeChange}
       onRefresh={handleRetry}
       isLoading={isLoading}

@@ -11,11 +11,11 @@ import { coinGeckoClient } from './coingecko';
 
 // Chart data configuration for different timeframes
 const TIMEFRAME_CONFIG = {
-  '1D': { days: 1, interval: 'hourly' },
-  '1W': { days: 7, interval: 'hourly' },
-  '1M': { days: 30, interval: 'daily' },
-  '3M': { days: 90, interval: 'daily' },
-  '1Y': { days: 365, interval: 'daily' },
+  '1D': { days: 2, interval: 'hourly' }, // 增加到 2 天以確保包含最新資料
+  '1W': { days: 8, interval: 'hourly' }, // 增加到 8 天
+  '1M': { days: 32, interval: 'daily' }, // 增加到 32 天
+  '3M': { days: 95, interval: 'daily' }, // 增加到 95 天
+  '1Y': { days: 370, interval: 'daily' }, // 增加到 370 天
 } as const;
 
 export class ChartDataClient {
@@ -96,15 +96,66 @@ export class ChartDataClient {
       return [];
     }
 
+    // Sort by timestamp ascending first
+    const sortedData = [...data].sort((a, b) => a.timestamp - b.timestamp);
+
+    let filteredData: ChartDataPoint[];
+
+    // Use time-based filtering but with more lenient cutoff times
     const now = Date.now();
     const config = TIMEFRAME_CONFIG[timeframe];
-    const cutoffTime = now - (config.days * 24 * 60 * 60 * 1000);
+    
+    // For daily stock data, we need to be more flexible with time ranges
+    // since Alpha Vantage provides end-of-day data
+    let cutoffTime: number;
+    
+    switch (timeframe) {
+      case '1D':
+        // For 1D, show data from the last 7 days to ensure we get enough recent data
+        cutoffTime = now - (7 * 24 * 60 * 60 * 1000);
+        break;
+      case '1W':
+        // For 1W, show data from the last 10 days
+        cutoffTime = now - (10 * 24 * 60 * 60 * 1000);
+        break;
+      case '1M':
+        // For 1M, show data from the last 35 days
+        cutoffTime = now - (35 * 24 * 60 * 60 * 1000);
+        break;
+      case '3M':
+        // For 3M, show data from the last 95 days
+        cutoffTime = now - (95 * 24 * 60 * 60 * 1000);
+        break;
+      case '1Y':
+        // For 1Y, show all available data (Alpha Vantage compact gives ~100 days)
+        cutoffTime = 0; // Show all data
+        break;
+      default:
+        cutoffTime = now - (config.days * 24 * 60 * 60 * 1000);
+    }
 
-    // Filter data by timeframe
-    let filteredData = data.filter(point => point.timestamp >= cutoffTime);
-
-    // Sort by timestamp ascending
-    filteredData.sort((a, b) => a.timestamp - b.timestamp);
+    // Filter data by the calculated cutoff time
+    filteredData = sortedData.filter(point => point.timestamp >= cutoffTime);
+    
+    // If no data after filtering, return the most recent data points
+    if (filteredData.length === 0) {
+      switch (timeframe) {
+        case '1D':
+          filteredData = sortedData.slice(-7); // Last 7 days as fallback
+          break;
+        case '1W':
+          filteredData = sortedData.slice(-10); // Last 10 days as fallback
+          break;
+        case '1M':
+          filteredData = sortedData.slice(-30); // Last 30 days as fallback
+          break;
+        case '3M':
+          filteredData = sortedData.slice(-90); // Last 90 days as fallback
+          break;
+        default:
+          filteredData = sortedData; // All data as fallback
+      }
+    }
 
     // For shorter timeframes, we might want to sample the data
     if (timeframe === '1D' && filteredData.length > 24) {

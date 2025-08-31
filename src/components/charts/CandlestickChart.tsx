@@ -1,7 +1,14 @@
 'use client';
 
 import { useEffect, useRef, useCallback, useState } from 'react';
-import { createChart, IChartApi, CandlestickData as LWCCandlestickData, MouseEventParams } from 'lightweight-charts';
+import { 
+  createChart, 
+  IChartApi, 
+  CandlestickData as LWCCandlestickData, 
+  MouseEventParams, 
+  ISeriesApi,
+  CandlestickSeries
+} from 'lightweight-charts';
 import { CandlestickData } from '@/types';
 
 interface CandlestickChartProps {
@@ -27,7 +34,7 @@ export function CandlestickChart({
 }: CandlestickChartProps) {
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
-  const seriesRef = useRef<unknown | null>(null);
+  const seriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
   const [tooltipData, setTooltipData] = useState<{
     visible: boolean;
@@ -143,8 +150,7 @@ export function CandlestickChart({
       handleScale: enableInteraction,
     });
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const candlestickSeries = (chart as any).addCandlestickSeries({
+    const candlestickSeries = chart.addSeries(CandlestickSeries, {
       upColor: '#26a69a',
       downColor: '#ef5350',
       borderVisible: false,
@@ -177,8 +183,9 @@ export function CandlestickChart({
     if (!seriesRef.current || !data.length) return;
 
     const chartData = convertData(data);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (seriesRef.current as any).setData(chartData);
+    if (seriesRef.current) {
+      seriesRef.current.setData(chartData);
+    }
     
     // 自動調整視圖範圍
     if (chartRef.current) {
