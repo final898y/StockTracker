@@ -36,7 +36,23 @@ export function useWatchlistPrices(options: UseWatchlistPricesOptions = {}) {
         const response = await fetch(endpoint);
         
         if (!response.ok) {
-          throw new Error(`獲取 ${item.asset.symbol} 價格失敗`);
+          // Try to get error message from API response
+          try {
+            const errorData = await response.json();
+            if (errorData.error?.message) {
+              throw new Error(errorData.error.message);
+            }
+          } catch (parseError) {
+            // If we can't parse the error response, use a generic message
+            console.warn('Failed to parse error response:', parseError);
+          }
+          
+          // For rate limit errors, provide a specific message
+          if (response.status === 429) {
+            throw new Error('Alpha Vantage API 每日使用限制已達上限，請明天再試或升級到付費方案');
+          }
+          
+          throw new Error(`獲取 ${item.asset.symbol} 價格失敗 (HTTP ${response.status})`);
         }
 
         const data = await response.json();
@@ -50,7 +66,17 @@ export function useWatchlistPrices(options: UseWatchlistPricesOptions = {}) {
       enabled: enabled && items.length > 0,
       refetchInterval,
       staleTime,
-      retry: 2,
+      retry: (failureCount, error) => {
+        // Don't retry for rate limit errors
+        if (error instanceof Error && (
+          error.message.includes('每日使用限制已達上限') || 
+          error.message.includes('rate limit')
+        )) {
+          return false;
+        }
+        // Retry up to 2 times for other errors
+        return failureCount < 2;
+      },
       retryDelay: (attemptIndex: number) => Math.min(1000 * 2 ** attemptIndex, 5000),
     })),
   });

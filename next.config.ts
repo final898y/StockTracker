@@ -5,7 +5,18 @@ const nextConfig: NextConfig = {
     optimizePackageImports: ['lightweight-charts'],
   },
   images: {
-    domains: ['assets.coingecko.com'], // For crypto logos
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'assets.coingecko.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'coin-images.coingecko.com',
+        pathname: '/**',
+      },
+    ],
   },
   // Enable static optimization
   output: 'standalone',

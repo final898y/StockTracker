@@ -250,10 +250,21 @@ export class AlphaVantageClient {
           throw new Error('API rate limit exceeded. Please try again later.');
         }
 
+        // Check for rate limit information message
+        if (data['Information'] && data['Information'].includes('rate limit')) {
+          throw new Error('API rate limit exceeded. Please try again later.');
+        }
+
         return data as T;
       } catch (error) {
         lastError = error as Error;
         console.warn(`Alpha Vantage API attempt ${attempt} failed:`, error);
+
+        // Don't retry for rate limit errors to avoid wasting API quota
+        if (error instanceof Error && error.message.includes('rate limit')) {
+          console.warn('Rate limit detected, stopping retries to preserve API quota');
+          throw error;
+        }
 
         if (attempt < this.maxRetries) {
           await this.delay(this.retryDelay * attempt); // Exponential backoff
@@ -272,7 +283,7 @@ export class AlphaVantageClient {
       if (error.message.includes('rate limit') || error.message.includes('API call frequency')) {
         return {
           errorCode: ERROR_CODES.API_RATE_LIMIT,
-          message: 'API rate limit exceeded',
+          message: 'Alpha Vantage API 每日使用限制已達上限，請明天再試或升級到付費方案',
           details: { originalError: error.message },
         };
       }
@@ -280,7 +291,7 @@ export class AlphaVantageClient {
       if (error.message.includes('not found') || error.message.includes('Invalid API call')) {
         return {
           errorCode: ERROR_CODES.ASSET_NOT_FOUND,
-          message: 'Stock not found',
+          message: '找不到該股票代碼',
           details: { originalError: error.message },
         };
       }
@@ -288,7 +299,7 @@ export class AlphaVantageClient {
       if (error.name === 'AbortError' || error.message.includes('timeout')) {
         return {
           errorCode: ERROR_CODES.NETWORK_ERROR,
-          message: 'Request timeout',
+          message: '請求超時，請稍後再試',
           details: { originalError: error.message },
         };
       }
@@ -302,7 +313,7 @@ export class AlphaVantageClient {
 
     return {
       errorCode: ERROR_CODES.EXTERNAL_API_ERROR,
-      message: 'Unknown error occurred',
+      message: '發生未知錯誤',
       details: { originalError: String(error) },
     };
   }
