@@ -1,0 +1,71 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - img [ref=e3]
+    - generic [ref=e8]: 已連線
+  - generic [ref=e9]:
+    - navigation [ref=e10]:
+      - generic [ref=e12]:
+        - generic [ref=e13]:
+          - img [ref=e15]
+          - generic [ref=e18]: 股票追蹤器
+        - button "進入應用" [ref=e19]:
+          - generic [ref=e20]: 進入應用
+          - img [ref=e21]
+    - main [ref=e24]:
+      - generic [ref=e25]:
+        - img [ref=e27]
+        - heading "專業的 投資追蹤 工具" [level=1] [ref=e30]:
+          - text: 專業的
+          - generic [ref=e31]: 投資追蹤
+          - text: 工具
+        - paragraph [ref=e32]: 追蹤美股和加密貨幣價格，查看專業K線圖表，管理您的投資組合。 簡潔易用的介面，讓投資決策更加明智。
+        - generic [ref=e33]:
+          - button "開始使用" [ref=e34]:
+            - generic [ref=e35]: 開始使用
+            - img [ref=e36]
+          - button "查看圖表示例" [ref=e39]:
+            - img [ref=e40]
+            - generic [ref=e45]: 查看圖表示例
+      - generic [ref=e46]:
+        - generic [ref=e47]:
+          - img [ref=e49]
+          - heading "智能搜尋" [level=3] [ref=e52]
+          - paragraph [ref=e53]: 快速搜尋美股和加密貨幣，支援股票代碼和公司名稱搜尋， 輕鬆找到您想要追蹤的資產。
+        - generic [ref=e54]:
+          - img [ref=e56]
+          - heading "專業圖表" [level=3] [ref=e61]
+          - paragraph [ref=e62]: 採用 TradingView 圖表庫，提供專業級K線圖表， 支援多種時間範圍和技術分析工具。
+        - generic [ref=e63]:
+          - img [ref=e65]
+          - heading "響應式設計" [level=3] [ref=e68]
+          - paragraph [ref=e69]: 完美適配桌面和行動裝置，無論何時何地都能 輕鬆管理您的投資組合。
+      - generic [ref=e70]:
+        - heading "主要功能" [level=3] [ref=e71]
+        - generic [ref=e72]:
+          - generic [ref=e73]:
+            - img [ref=e74]
+            - generic [ref=e77]: 追蹤美股和加密貨幣價格
+          - generic [ref=e78]:
+            - img [ref=e79]
+            - generic [ref=e82]: 即時價格更新和變動提醒
+          - generic [ref=e83]:
+            - img [ref=e84]
+            - generic [ref=e87]: 專業K線圖表和技術分析
+          - generic [ref=e88]:
+            - img [ref=e89]
+            - generic [ref=e92]: 個人化追蹤清單管理
+          - generic [ref=e93]:
+            - img [ref=e94]
+            - generic [ref=e97]: 響應式設計支援行動裝置
+          - generic [ref=e98]:
+            - img [ref=e99]
+            - generic [ref=e102]: 本地資料存儲保護隱私
+    - contentinfo [ref=e103]:
+      - paragraph [ref=e106]: © 2024 股票追蹤器. 專為投資者打造的追蹤工具.
+  - button "Open Next.js Dev Tools" [ref=e112] [cursor=pointer]:
+    - img [ref=e113] [cursor=pointer]
+  - alert [ref=e117]
+```
