@@ -1,122 +1,457 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { vi } from 'vitest';
 import { SearchBar } from '../SearchBar';
+import { StockSearchResult, CryptoSearchResult } from '@/types';
 
-// Mock the hooks
+// Mock the unified search hook
+const mockSearch = vi.fn();
+const mockClear = vi.fn();
+
 vi.mock('@/hooks/use-unified-search', () => ({
-  useUnifiedSearch: () => ({
+  useUnifiedSearch: vi.fn(() => ({
     query: '',
     stockResults: [],
     cryptoResults: [],
     loading: false,
     error: null,
-    searchHistory: ['AAPL', 'BTC'],
-    search: vi.fn(),
-    clear: vi.fn(),
-    hasResults: () => false,
-    totalResults: 0,
+    searchHistory: [],
+    search: mockSearch,
+    clear: mockClear,
+    hasResults: false,
     stockCount: 0,
     cryptoCount: 0,
-  }),
+  })),
 }));
 
-const createTestQueryClient = () => new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: false,
-    },
+const mockStockResults: StockSearchResult[] = [
+  {
+    symbol: 'AAPL',
+    name: 'Apple Inc.',
+    exchange: 'NASDAQ',
+    currency: 'USD',
+    type: 'Equity',
   },
-});
+  {
+    symbol: 'GOOGL',
+    name: 'Alphabet Inc.',
+    exchange: 'NASDAQ',
+    currency: 'USD',
+    type: 'Equity',
+  },
+];
 
-const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const queryClient = createTestQueryClient();
-  return (
-    <QueryClientProvider client={queryClient}>
-      {children}
-    </QueryClientProvider>
-  );
-};
+const mockCryptoResults: CryptoSearchResult[] = [
+  {
+    id: 'bitcoin',
+    symbol: 'btc',
+    name: 'Bitcoin',
+    image: 'https://example.com/bitcoin.png',
+  },
+  {
+    id: 'ethereum',
+    symbol: 'eth',
+    name: 'Ethereum',
+    image: 'https://example.com/ethereum.png',
+  },
+];
 
 describe('SearchBar', () => {
-  it('renders search input with placeholder', () => {
-    render(
-      <TestWrapper>
-        <SearchBar placeholder="測試搜尋..." />
-      </TestWrapper>
-    );
+  const mockOnSelectAsset = vi.fn();
+  const user = userEvent.setup();
 
-    const input = screen.getByPlaceholderText('測試搜尋...');
+  beforeEach(() => {
+    vi.clearAllMocks();
+    const { useUnifiedSearch } = require('@/hooks/use-unified-search');
+    useUnifiedSearch.mockReturnValue({
+      query: '',
+      stockResults: [],
+      cryptoResults: [],
+      loading: false,
+      error: null,
+      searchHistory: [],
+      search: mockSearch,
+      clear: mockClear,
+      hasResults: false,
+      stockCount: 0,
+      cryptoCount: 0,
+    });
+  });
+
+  it('renders search input correctly', () => {
+    render(<SearchBar />);
+    
+    const input = screen.getByPlaceholderText('搜尋股票或加密貨幣...');
     expect(input).toBeInTheDocument();
+    expect(screen.getByRole('textbox')).toBeInTheDocument();
   });
 
-  it('calls onSelectAsset when asset is selected', () => {
-    const mockOnSelectAsset = vi.fn();
+  it('renders with custom placeholder', () => {
+    render(<SearchBar placeholder="自訂搜尋提示" />);
     
-    render(
-      <TestWrapper>
-        <SearchBar onSelectAsset={mockOnSelectAsset} />
-      </TestWrapper>
-    );
-
-    const input = screen.getByPlaceholderText('搜尋股票或加密貨幣...');
-    fireEvent.change(input, { target: { value: 'AAPL' } });
-    
-    // 測試輸入功能
-    expect(input).toHaveValue('AAPL');
+    expect(screen.getByPlaceholderText('自訂搜尋提示')).toBeInTheDocument();
   });
 
-  it('shows clear button when input has value', () => {
-    render(
-      <TestWrapper>
-        <SearchBar />
-      </TestWrapper>
-    );
-
-    const input = screen.getByPlaceholderText('搜尋股票或加密貨幣...');
-    fireEvent.change(input, { target: { value: 'test' } });
-
-    // 應該顯示清除按鈕 - 通過查找 X 圖示來識別清除按鈕
-    const clearIcon = document.querySelector('.lucide-x');
-    expect(clearIcon).toBeInTheDocument();
+  it('calls search function when typing', async () => {
+    render(<SearchBar />);
+    
+    const input = screen.getByRole('textbox');
+    await user.type(input, 'AAPL');
+    
+    await waitFor(() => {
+      expect(mockSearch).toHaveBeenCalledWith('AAPL');
+    });
   });
 
-  it('clears input when clear button is clicked', () => {
-    render(
-      <TestWrapper>
-        <SearchBar />
-      </TestWrapper>
-    );
-
-    const input = screen.getByPlaceholderText('搜尋股票或加密貨幣...');
-    fireEvent.change(input, { target: { value: 'test' } });
+  it('shows clear button when input has value', async () => {
+    render(<SearchBar />);
     
-    // 通過查找 X 圖示的父按鈕來點擊清除按鈕
-    const clearIcon = document.querySelector('.lucide-x');
-    const clearButton = clearIcon?.closest('button');
-    expect(clearButton).toBeInTheDocument();
+    const input = screen.getByRole('textbox');
+    await user.type(input, 'test');
     
-    if (clearButton) {
-      fireEvent.click(clearButton);
-    }
-
-    expect(input).toHaveValue('');
+    expect(screen.getByRole('button')).toBeInTheDocument();
   });
 
-  it('handles keyboard events correctly', () => {
-    render(
-      <TestWrapper>
-        <SearchBar />
-      </TestWrapper>
-    );
-
-    const input = screen.getByPlaceholderText('搜尋股票或加密貨幣...');
+  it('clears input when clear button is clicked', async () => {
+    render(<SearchBar />);
     
-    // 測試 Escape 鍵
+    const input = screen.getByRole('textbox') as HTMLInputElement;
+    await user.type(input, 'test');
+    
+    const clearButton = screen.getByRole('button');
+    await user.click(clearButton);
+    
+    expect(input.value).toBe('');
+    expect(mockClear).toHaveBeenCalled();
+  });
+
+  it('shows loading state', () => {
+    const { useUnifiedSearch } = require('@/hooks/use-unified-search');
+    useUnifiedSearch.mockReturnValue({
+      query: 'test',
+      stockResults: [],
+      cryptoResults: [],
+      loading: true,
+      error: null,
+      searchHistory: [],
+      search: mockSearch,
+      clear: mockClear,
+      hasResults: false,
+      stockCount: 0,
+      cryptoCount: 0,
+    });
+
+    render(<SearchBar />);
+    
+    const input = screen.getByRole('textbox');
+    fireEvent.focus(input);
+    
+    expect(screen.getByText('搜尋中...')).toBeInTheDocument();
+    expect(document.querySelector('.animate-spin')).toBeInTheDocument();
+  });
+
+  it('shows error state', () => {
+    const { useUnifiedSearch } = require('@/hooks/use-unified-search');
+    useUnifiedSearch.mockReturnValue({
+      query: 'test',
+      stockResults: [],
+      cryptoResults: [],
+      loading: false,
+      error: '網路連線錯誤',
+      searchHistory: [],
+      search: mockSearch,
+      clear: mockClear,
+      hasResults: false,
+      stockCount: 0,
+      cryptoCount: 0,
+    });
+
+    render(<SearchBar />);
+    
+    const input = screen.getByRole('textbox');
+    fireEvent.focus(input);
+    
+    expect(screen.getByText('搜尋時發生錯誤: 網路連線錯誤')).toBeInTheDocument();
+  });
+
+  it('displays stock search results', () => {
+    const { useUnifiedSearch } = require('@/hooks/use-unified-search');
+    useUnifiedSearch.mockReturnValue({
+      query: 'apple',
+      stockResults: mockStockResults,
+      cryptoResults: [],
+      loading: false,
+      error: null,
+      searchHistory: [],
+      search: mockSearch,
+      clear: mockClear,
+      hasResults: true,
+      stockCount: 2,
+      cryptoCount: 0,
+    });
+
+    render(<SearchBar />);
+    
+    const input = screen.getByRole('textbox');
+    fireEvent.focus(input);
+    
+    expect(screen.getByText('股票 (2)')).toBeInTheDocument();
+    expect(screen.getByText('AAPL')).toBeInTheDocument();
+    expect(screen.getByText('Apple Inc.')).toBeInTheDocument();
+    expect(screen.getByText('NASDAQ')).toBeInTheDocument();
+  });
+
+  it('displays crypto search results', () => {
+    const { useUnifiedSearch } = require('@/hooks/use-unified-search');
+    useUnifiedSearch.mockReturnValue({
+      query: 'bitcoin',
+      stockResults: [],
+      cryptoResults: mockCryptoResults,
+      loading: false,
+      error: null,
+      searchHistory: [],
+      search: mockSearch,
+      clear: mockClear,
+      hasResults: true,
+      stockCount: 0,
+      cryptoCount: 2,
+    });
+
+    render(<SearchBar />);
+    
+    const input = screen.getByRole('textbox');
+    fireEvent.focus(input);
+    
+    expect(screen.getByText('加密貨幣 (2)')).toBeInTheDocument();
+    expect(screen.getByText('BTC')).toBeInTheDocument();
+    expect(screen.getByText('Bitcoin')).toBeInTheDocument();
+  });
+
+  it('calls onSelectAsset when stock is selected', async () => {
+    const { useUnifiedSearch } = require('@/hooks/use-unified-search');
+    useUnifiedSearch.mockReturnValue({
+      query: 'apple',
+      stockResults: mockStockResults,
+      cryptoResults: [],
+      loading: false,
+      error: null,
+      searchHistory: [],
+      search: mockSearch,
+      clear: mockClear,
+      hasResults: true,
+      stockCount: 2,
+      cryptoCount: 0,
+    });
+
+    render(<SearchBar onSelectAsset={mockOnSelectAsset} />);
+    
+    const input = screen.getByRole('textbox');
+    fireEvent.focus(input);
+    
+    const stockButton = screen.getByText('AAPL').closest('button');
+    await user.click(stockButton!);
+    
+    expect(mockOnSelectAsset).toHaveBeenCalledWith(mockStockResults[0], 'stock');
+  });
+
+  it('calls onSelectAsset when crypto is selected', async () => {
+    const { useUnifiedSearch } = require('@/hooks/use-unified-search');
+    useUnifiedSearch.mockReturnValue({
+      query: 'bitcoin',
+      stockResults: [],
+      cryptoResults: mockCryptoResults,
+      loading: false,
+      error: null,
+      searchHistory: [],
+      search: mockSearch,
+      clear: mockClear,
+      hasResults: true,
+      stockCount: 0,
+      cryptoCount: 2,
+    });
+
+    render(<SearchBar onSelectAsset={mockOnSelectAsset} />);
+    
+    const input = screen.getByRole('textbox');
+    fireEvent.focus(input);
+    
+    const cryptoButton = screen.getByText('BTC').closest('button');
+    await user.click(cryptoButton!);
+    
+    expect(mockOnSelectAsset).toHaveBeenCalledWith(mockCryptoResults[0], 'crypto');
+  });
+
+  it('shows search history when no results', () => {
+    const { useUnifiedSearch } = require('@/hooks/use-unified-search');
+    useUnifiedSearch.mockReturnValue({
+      query: '',
+      stockResults: [],
+      cryptoResults: [],
+      loading: false,
+      error: null,
+      searchHistory: ['AAPL', 'BTC', 'TSLA'],
+      search: mockSearch,
+      clear: mockClear,
+      hasResults: false,
+      stockCount: 0,
+      cryptoCount: 0,
+    });
+
+    render(<SearchBar />);
+    
+    const input = screen.getByRole('textbox');
+    fireEvent.focus(input);
+    
+    expect(screen.getByText('最近搜尋')).toBeInTheDocument();
+    expect(screen.getByText('AAPL')).toBeInTheDocument();
+    expect(screen.getByText('BTC')).toBeInTheDocument();
+    expect(screen.getByText('TSLA')).toBeInTheDocument();
+  });
+
+  it('handles history item selection', async () => {
+    const { useUnifiedSearch } = require('@/hooks/use-unified-search');
+    useUnifiedSearch.mockReturnValue({
+      query: '',
+      stockResults: [],
+      cryptoResults: [],
+      loading: false,
+      error: null,
+      searchHistory: ['AAPL'],
+      search: mockSearch,
+      clear: mockClear,
+      hasResults: false,
+      stockCount: 0,
+      cryptoCount: 0,
+    });
+
+    render(<SearchBar />);
+    
+    const input = screen.getByRole('textbox');
+    fireEvent.focus(input);
+    
+    const historyButton = screen.getByText('AAPL').closest('button');
+    await user.click(historyButton!);
+    
+    expect(mockSearch).toHaveBeenCalledWith('AAPL');
+  });
+
+  it('shows no results message', () => {
+    const { useUnifiedSearch } = require('@/hooks/use-unified-search');
+    useUnifiedSearch.mockReturnValue({
+      query: 'nonexistent',
+      stockResults: [],
+      cryptoResults: [],
+      loading: false,
+      error: null,
+      searchHistory: [],
+      search: mockSearch,
+      clear: mockClear,
+      hasResults: false,
+      stockCount: 0,
+      cryptoCount: 0,
+    });
+
+    render(<SearchBar />);
+    
+    const input = screen.getByRole('textbox');
+    fireEvent.focus(input);
+    
+    expect(screen.getByText('找不到相關結果')).toBeInTheDocument();
+  });
+
+  it('closes dropdown when clicking outside', async () => {
+    const { useUnifiedSearch } = require('@/hooks/use-unified-search');
+    useUnifiedSearch.mockReturnValue({
+      query: '',
+      stockResults: [],
+      cryptoResults: [],
+      loading: false,
+      error: null,
+      searchHistory: ['AAPL'],
+      search: mockSearch,
+      clear: mockClear,
+      hasResults: false,
+      stockCount: 0,
+      cryptoCount: 0,
+    });
+
+    render(<SearchBar />);
+    
+    const input = screen.getByRole('textbox');
+    fireEvent.focus(input);
+    
+    expect(screen.getByText('最近搜尋')).toBeInTheDocument();
+    
+    // Click outside
+    fireEvent.mouseDown(document.body);
+    
+    await waitFor(() => {
+      expect(screen.queryByText('最近搜尋')).not.toBeInTheDocument();
+    });
+  });
+
+  it('closes dropdown when pressing Escape', async () => {
+    const { useUnifiedSearch } = require('@/hooks/use-unified-search');
+    useUnifiedSearch.mockReturnValue({
+      query: '',
+      stockResults: [],
+      cryptoResults: [],
+      loading: false,
+      error: null,
+      searchHistory: ['AAPL'],
+      search: mockSearch,
+      clear: mockClear,
+      hasResults: false,
+      stockCount: 0,
+      cryptoCount: 0,
+    });
+
+    render(<SearchBar />);
+    
+    const input = screen.getByRole('textbox');
+    fireEvent.focus(input);
+    
+    expect(screen.getByText('最近搜尋')).toBeInTheDocument();
+    
     fireEvent.keyDown(input, { key: 'Escape' });
     
-    // 輸入應該失去焦點（在實際實現中）
-    expect(input).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.queryByText('最近搜尋')).not.toBeInTheDocument();
+    });
+  });
+
+  it('applies custom className', () => {
+    const { container } = render(<SearchBar className="custom-search-bar" />);
+    
+    expect(container.firstChild).toHaveClass('custom-search-bar');
+  });
+
+  it('clears input and closes dropdown when asset is selected', async () => {
+    const { useUnifiedSearch } = require('@/hooks/use-unified-search');
+    useUnifiedSearch.mockReturnValue({
+      query: 'apple',
+      stockResults: mockStockResults,
+      cryptoResults: [],
+      loading: false,
+      error: null,
+      searchHistory: [],
+      search: mockSearch,
+      clear: mockClear,
+      hasResults: true,
+      stockCount: 2,
+      cryptoCount: 0,
+    });
+
+    render(<SearchBar onSelectAsset={mockOnSelectAsset} />);
+    
+    const input = screen.getByRole('textbox') as HTMLInputElement;
+    fireEvent.focus(input);
+    
+    const stockButton = screen.getByText('AAPL').closest('button');
+    await user.click(stockButton!);
+    
+    expect(input.value).toBe('');
+    expect(mockClear).toHaveBeenCalled();
   });
 });
