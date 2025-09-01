@@ -1,7 +1,7 @@
 import { useQueries } from '@tanstack/react-query';
 import { useWatchlistStore } from '@/stores';
 import { StockDetailsResponse, CryptoDetailsResponse, PriceData } from '@/types';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 interface UseWatchlistPricesOptions {
   enabled?: boolean;
@@ -17,6 +17,12 @@ export function useWatchlistPrices(options: UseWatchlistPricesOptions = {}) {
   } = options;
 
   const { items, updatePrices } = useWatchlistStore();
+  const updatePricesRef = useRef(updatePrices);
+  
+  // 保持 updatePrices 引用最新
+  useEffect(() => {
+    updatePricesRef.current = updatePrices;
+  }, [updatePrices]);
 
   // 為每個追蹤項目創建查詢
   const queries = useQueries({
@@ -55,7 +61,7 @@ export function useWatchlistPrices(options: UseWatchlistPricesOptions = {}) {
     let hasUpdates = false;
 
     queries.forEach((query, index) => {
-      if (query.data && !query.isError) {
+      if (query.data && !query.isError && items[index]) {
         const item = items[index];
         const data = query.data;
         
@@ -86,9 +92,17 @@ export function useWatchlistPrices(options: UseWatchlistPricesOptions = {}) {
     });
 
     if (hasUpdates) {
-      updatePrices(priceUpdates);
+      updatePricesRef.current(priceUpdates);
     }
-  }, [queries, items, updatePrices]);
+  }, [
+    // 只依賴查詢結果的序列化版本，避免引用變化
+    JSON.stringify(queries.map(q => ({ 
+      data: q.data, 
+      isError: q.isError,
+      dataUpdatedAt: q.dataUpdatedAt 
+    }))),
+    items.length
+  ]);
 
   // 計算整體狀態
   const isLoading = queries.some(query => query.isLoading);
