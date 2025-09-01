@@ -33,7 +33,7 @@ export function useCryptoSearch(query: string, options: UseCryptoSearchOptions =
         throw new Error(data.error?.message || '搜尋加密貨幣失敗');
       }
 
-      return data.data;
+      return { results: data.data || [] };
     },
     enabled: enabled && query.trim().length > 0,
     staleTime,

@@ -33,7 +33,7 @@ export function useStockSearch(query: string, options: UseStockSearchOptions = {
         throw new Error(data.error?.message || '搜尋股票失敗');
       }
 
-      return data.data;
+      return { results: data.data || [] };
     },
     enabled: enabled && query.trim().length > 0,
     staleTime,
