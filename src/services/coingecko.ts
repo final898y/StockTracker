@@ -49,19 +49,35 @@ interface CoinGeckoChartResponse {
 
 export class CoinGeckoClient {
   private readonly apiKey?: string;
-  private readonly baseUrl = 'https://api.coingecko.com/api/v3';
+  private readonly baseUrl: string;
   private readonly timeout: number;
   private readonly maxRetries: number;
   private readonly retryDelay: number;
   private requestCount = 0;
   private lastRequestTime = 0;
-  private readonly rateLimitDelay = 1000; // 1 second between requests for free tier
+  private readonly rateLimitDelay = 1200; // 1.2 seconds between requests for Demo plan (50 calls/minute = 1.2s interval)
+  
+  // Simple in-memory cache to reduce API calls
+  private searchCache = new Map<string, { data: CryptoSearchResult[]; timestamp: number }>();
+  private readonly cacheTimeout = 5 * 60 * 1000; // 5 minutes
 
   constructor() {
     this.apiKey = process.env.COINGECKO_API_KEY;
+    
+    // According to CoinGecko docs:
+    // - Demo plan (Public API users) must use api.coingecko.com
+    // - Only paid Pro subscribers should use pro-api.coingecko.com
+    // Since we're using Demo plan, always use the standard API URL
+    this.baseUrl = 'https://api.coingecko.com/api/v3';
+      
     this.timeout = API_CONFIG.TIMEOUT;
     this.maxRetries = API_CONFIG.RETRY_ATTEMPTS;
     this.retryDelay = API_CONFIG.RETRY_DELAY;
+    
+    if (process.env.NODE_ENV === 'development') {
+      const tier = this.apiKey ? 'Demo' : 'Free';
+      console.log(`CoinGecko Client initialized with ${tier} tier, URL: ${this.baseUrl}`);
+    }
   }
 
   /**
@@ -72,27 +88,91 @@ export class CoinGeckoClient {
       return [];
     }
 
+    const normalizedQuery = query.trim().toLowerCase();
+    
+    // Check cache first
+    const cached = this.searchCache.get(normalizedQuery);
+    if (cached && Date.now() - cached.timestamp < this.cacheTimeout) {
+      console.log(`Returning cached search results for: ${normalizedQuery}`);
+      return cached.data;
+    }
+
     try {
+      // First try the dedicated search endpoint
       const response = await this.makeRequest<CoinGeckoSearchResponse>('/search', {
-        query: query.trim(),
+        query: normalizedQuery,
       });
 
-      if (!response.coins) {
-        return [];
+      if (!response || !response.coins || !Array.isArray(response.coins)) {
+        console.warn('CoinGecko search returned no coins data, trying fallback method');
+        return await this.searchCryptoFallback(query);
       }
 
-      return response.coins
+      const results = response.coins
         .slice(0, 10) // Limit to top 10 results
         .map(coin => ({
           id: coin.id,
           symbol: coin.symbol.toUpperCase(),
           name: coin.name,
-          image: coin.large,
+          image: coin.large || coin.thumb, // Fallback to thumb if large not available
         }));
+
+      // Cache the results
+      this.searchCache.set(normalizedQuery, { data: results, timestamp: Date.now() });
+      
+      return results;
     } catch (error) {
-      console.error('CoinGecko search error:', error);
-      throw this.handleError(error);
+      console.error('CoinGecko search error, trying fallback:', error);
+      
+      // Try fallback method if search endpoint fails
+      try {
+        const fallbackResults = await this.searchCryptoFallback(query);
+        
+        // Cache fallback results too
+        this.searchCache.set(normalizedQuery, { data: fallbackResults, timestamp: Date.now() });
+        
+        return fallbackResults;
+      } catch (fallbackError) {
+        console.error('CoinGecko fallback search also failed:', fallbackError);
+        throw this.handleError(error); // Throw original error
+      }
     }
+  }
+
+  /**
+   * Fallback search using markets endpoint when search endpoint fails
+   */
+  private async searchCryptoFallback(query: string): Promise<CryptoSearchResult[]> {
+    const normalizedQuery = query.trim().toLowerCase();
+    
+    // Get top 250 cryptocurrencies and filter locally
+    const response = await this.makeRequest<CoinGeckoMarketResponse[]>('/coins/markets', {
+      vs_currency: 'usd',
+      order: 'market_cap_desc',
+      per_page: '250',
+      page: '1',
+      sparkline: 'false',
+    });
+
+    if (!response || !Array.isArray(response)) {
+      return [];
+    }
+
+    // Filter by symbol or name match
+    const matches = response.filter(coin => 
+      coin.symbol.toLowerCase().includes(normalizedQuery) ||
+      coin.name.toLowerCase().includes(normalizedQuery) ||
+      coin.id.toLowerCase().includes(normalizedQuery)
+    );
+
+    return matches
+      .slice(0, 10) // Limit to top 10 results
+      .map(coin => ({
+        id: coin.id,
+        symbol: coin.symbol.toUpperCase(),
+        name: coin.name,
+        image: coin.image,
+      }));
   }
 
   /**
@@ -275,6 +355,11 @@ export class CoinGeckoClient {
       headers['x-cg-pro-api-key'] = this.apiKey;
     }
 
+    // Debug logging (only in development)
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`CoinGecko API Request: ${url.toString()}`);
+    }
+
     let lastError: Error | null = null;
 
     for (let attempt = 1; attempt <= this.maxRetries; attempt++) {
@@ -291,6 +376,10 @@ export class CoinGeckoClient {
         clearTimeout(timeoutId);
 
         if (!response.ok) {
+          // Log response details for debugging
+          const responseText = await response.text();
+          console.error(`CoinGecko API Error Response (${response.status}):`, responseText);
+          
           if (response.status === 429) {
             throw new Error('Rate limit exceeded. Please try again later.');
           }
@@ -317,17 +406,16 @@ export class CoinGeckoClient {
   }
 
   /**
-   * Enforce rate limiting for free tier (50 calls/minute)
+   * Enforce rate limiting for Demo plan (50 calls/minute) and Free tier (10-30 calls/minute)
    */
   private async enforceRateLimit(): Promise<void> {
-    if (!this.apiKey) { // Free tier rate limiting
-      const now = Date.now();
-      const timeSinceLastRequest = now - this.lastRequestTime;
-      
-      if (timeSinceLastRequest < this.rateLimitDelay) {
-        const waitTime = this.rateLimitDelay - timeSinceLastRequest;
-        await this.delay(waitTime);
-      }
+    const now = Date.now();
+    const timeSinceLastRequest = now - this.lastRequestTime;
+    
+    if (timeSinceLastRequest < this.rateLimitDelay) {
+      const waitTime = this.rateLimitDelay - timeSinceLastRequest;
+      console.log(`Rate limiting: waiting ${waitTime}ms before next request`);
+      await this.delay(waitTime);
     }
   }
 
@@ -392,11 +480,13 @@ export class CoinGeckoClient {
    * Get API usage info
    */
   getUsageInfo(): { hasApiKey: boolean; provider: string; requestCount: number; tier: string } {
+    const tier = this.apiKey ? 'Demo' : 'Free';
+    
     return {
       hasApiKey: this.isConfigured(),
       provider: 'CoinGecko',
       requestCount: this.requestCount,
-      tier: this.apiKey ? 'Pro' : 'Free',
+      tier,
     };
   }
 
