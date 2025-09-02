@@ -5,7 +5,7 @@ import { CandlestickChart } from '../CandlestickChart';
 import { CandlestickData } from '@/types';
 
 // Mock lightweight-charts
-vi.mock('lightweight-charts', () => {
+const { mockChart, mockSeries, mockCreateChart } = vi.hoisted(() => {
   const mockChart = {
     addSeries: vi.fn(),
     subscribeCrosshairMove: vi.fn(),
@@ -23,11 +23,13 @@ vi.mock('lightweight-charts', () => {
 
   const mockCreateChart = vi.fn(() => mockChart);
 
-  return {
-    createChart: mockCreateChart,
-    CandlestickSeries: {},
-  };
+  return { mockChart, mockSeries, mockCreateChart };
 });
+
+vi.mock('lightweight-charts', () => ({
+  createChart: mockCreateChart,
+  CandlestickSeries: {},
+}));
 
 // Mock ResizeObserver
 global.ResizeObserver = vi.fn().mockImplementation((callback) => ({
@@ -68,6 +70,7 @@ describe('CandlestickChart', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    mockChart.addSeries.mockReturnValue(mockSeries);
   });
 
   it('renders chart container', () => {

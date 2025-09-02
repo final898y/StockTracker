@@ -125,11 +125,11 @@ describe('SearchBar', () => {
   });
 
   it('shows loading state', () => {
-    const { useUnifiedSearch } = require('@/hooks/use-unified-search');
-    useUnifiedSearch.mockReturnValue({
+    mockUseUnifiedSearch.mockReturnValue({
       query: 'test',
       stockResults: [],
       cryptoResults: [],
+      allResults: [],
       loading: true,
       error: null,
       searchHistory: [],
@@ -138,6 +138,13 @@ describe('SearchBar', () => {
       hasResults: false,
       stockCount: 0,
       cryptoCount: 0,
+      totalResults: 0,
+      isStockLoading: true,
+      isCryptoLoading: false,
+      stockError: null,
+      cryptoError: null,
+      refetch: vi.fn(),
+      setQuery: vi.fn(),
     });
 
     render(<SearchBar />);

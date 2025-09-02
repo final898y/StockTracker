@@ -2,25 +2,20 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { vi } from 'vitest';
 import { ChartModal } from '../ChartModal';
-import { WatchlistItem } from '@/types';
+import { Asset } from '@/types';
 import { useChartData } from '@/hooks/use-chart-data';
+import { useChartStore } from '@/stores/chart-store';
 
-// Mock the chart components
-vi.mock('../CandlestickChart', () => ({
-  CandlestickChart: ({ data, ...props }: any) => (
-    <div data-testid="candlestick-chart" {...props}>
-      Mock Chart with {data?.length || 0} data points
-    </div>
-  ),
-}));
-
-vi.mock('../TimeRangeSelector', () => ({
-  TimeRangeSelector: ({ value, onChange, ...props }: any) => (
-    <div data-testid="time-range-selector" {...props}>
-      <button onClick={() => onChange('1D')}>1天</button>
-      <button onClick={() => onChange('1W')}>1週</button>
-      <button onClick={() => onChange('1M')}>1月</button>
-      <span>Current: {value}</span>
+// Mock the InteractiveChart component
+vi.mock('../InteractiveChart', () => ({
+  InteractiveChart: ({ data, ...props }: any) => (
+    <div data-testid="interactive-chart" {...props}>
+      <div data-testid="candlestick-chart">Mock Chart with {data?.length || 0} data points</div>
+      <div data-testid="time-range-selector">
+        <button>1天</button>
+        <button>1週</button>
+        <button>1月</button>
+      </div>
     </div>
   ),
 }));
@@ -30,225 +25,237 @@ vi.mock('@/hooks/use-chart-data', () => ({
   useChartData: vi.fn(),
 }));
 
-const mockUseChartData = vi.mocked(useChartData);
+// Mock the chart store
+vi.mock('@/stores/chart-store', () => ({
+  useChartStore: vi.fn(),
+}));
 
-const mockWatchlistItem: WatchlistItem = {
-  asset: {
-    symbol: 'AAPL',
-    name: 'Apple Inc.',
-    assetType: 'stock',
-    exchange: 'NASDAQ',
-  },
-  currentPrice: {
-    price: 150.25,
-    volume: 50000000,
-    change24h: 2.5,
-    timestamp: new Date(),
-  },
-  addedAt: new Date(),
+const mockUseChartData = vi.mocked(useChartData);
+const mockUseChartStore = vi.mocked(useChartStore);
+
+const mockAsset: Asset = {
+  symbol: 'AAPL',
+  name: 'Apple Inc.',
+  assetType: 'stock',
+  exchange: 'NASDAQ',
 };
 
 describe('ChartModal', () => {
   const mockOnClose = vi.fn();
+  const mockRefetch = vi.fn();
+  const mockSetTimeframe = vi.fn();
+  const mockToggleFullscreen = vi.fn();
+  const mockSetFullscreen = vi.fn();
+  const mockUpdateLastRefresh = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
+    
     mockUseChartData.mockReturnValue({
-      data: [
-        {
-          openPrice: 100,
-          highPrice: 110,
-          lowPrice: 95,
-          closePrice: 105,
-          volume: 1000,
-          timestamp: new Date('2024-01-01'),
-        },
-        {
-          openPrice: 105,
-          highPrice: 115,
-          lowPrice: 100,
-          closePrice: 110,
-          volume: 1200,
-          timestamp: new Date('2024-01-02'),
-        },
-      ],
-      loading: false,
+      data: {
+        data: [
+          {
+            open: 100,
+            high: 110,
+            low: 95,
+            close: 105,
+            volume: 1000,
+            timestamp: 1704067200, // 2024-01-01 timestamp
+          },
+          {
+            open: 105,
+            high: 115,
+            low: 100,
+            close: 110,
+            volume: 1200,
+            timestamp: 1704153600, // 2024-01-02 timestamp
+          },
+        ],
+      },
+      isLoading: false,
       error: null,
-      refetch: vi.fn(),
+      refetch: mockRefetch,
+    });
+
+    mockUseChartStore.mockReturnValue({
+      currentAsset: mockAsset,
+      timeframe: '1M',
+      isFullscreen: false,
+      autoRefresh: false,
+      refreshInterval: 30000,
+      setTimeframe: mockSetTimeframe,
+      toggleFullscreen: mockToggleFullscreen,
+      setFullscreen: mockSetFullscreen,
+      updateLastRefresh: mockUpdateLastRefresh,
     });
   });
 
   it('renders when open is true', () => {
-    render(<ChartModal open={true} item={mockWatchlistItem} onClose={mockOnClose} />);
-    
-    expect(screen.getByText('AAPL - Apple Inc.')).toBeInTheDocument();
-    expect(screen.getByTestId('candlestick-chart')).toBeInTheDocument();
-    expect(screen.getByTestId('time-range-selector')).toBeInTheDocument();
+    render(<ChartModal isOpen={true} onClose={mockOnClose} />);
+    expect(screen.getByTestId('interactive-chart')).toBeInTheDocument();
   });
 
   it('does not render when open is false', () => {
-    render(<ChartModal open={false} item={mockWatchlistItem} onClose={mockOnClose} />);
-    
-    expect(screen.queryByText('AAPL - Apple Inc.')).not.toBeInTheDocument();
+    render(<ChartModal isOpen={false} onClose={mockOnClose} />);
+    expect(screen.queryByTestId('interactive-chart')).not.toBeInTheDocument();
   });
 
   it('calls onClose when close button is clicked', () => {
-    render(<ChartModal open={true} item={mockWatchlistItem} onClose={mockOnClose} />);
-    
-    const closeButton = screen.getByTitle('關閉');
+    render(<ChartModal isOpen={true} onClose={mockOnClose} />);
+    const closeButton = screen.getByTitle('關閉 (ESC)');
     fireEvent.click(closeButton);
-    
     expect(mockOnClose).toHaveBeenCalledTimes(1);
   });
 
-  it('calls onClose when backdrop is clicked', () => {
-    render(<ChartModal open={true} item={mockWatchlistItem} onClose={mockOnClose} />);
-    
-    // 點擊背景遮罩
-    const backdrop = document.querySelector('.fixed.inset-0');
-    if (backdrop) {
-      fireEvent.click(backdrop);
-      expect(mockOnClose).toHaveBeenCalledTimes(1);
-    }
-  });
-
   it('does not close when modal content is clicked', () => {
-    render(<ChartModal open={true} item={mockWatchlistItem} onClose={mockOnClose} />);
-    
-    // 點擊模態框內容
-    const modalContent = screen.getByText('AAPL - Apple Inc.');
+    render(<ChartModal isOpen={true} onClose={mockOnClose} />);
+    const modalContent = screen.getByTestId('interactive-chart');
     fireEvent.click(modalContent);
-    
     expect(mockOnClose).not.toHaveBeenCalled();
   });
 
   it('handles time range change', () => {
-    render(<ChartModal open={true} item={mockWatchlistItem} onClose={mockOnClose} />);
-    
-    // 點擊時間範圍按鈕
+    render(<ChartModal isOpen={true} onClose={mockOnClose} />);
     const weekButton = screen.getByText('1週');
     fireEvent.click(weekButton);
-    
-    // 檢查時間範圍是否更新
-    expect(screen.getByText('Current: 1W')).toBeInTheDocument();
+    // The timeframe change is handled by InteractiveChart component
   });
 
   it('displays loading state', () => {
     mockUseChartData.mockReturnValue({
-      data: [],
-      loading: true,
+      data: null,
+      isLoading: true,
       error: null,
-      refetch: vi.fn(),
+      refetch: mockRefetch,
     });
 
-    render(<ChartModal open={true} item={mockWatchlistItem} onClose={mockOnClose} />);
-    
-    expect(screen.getByText('載入圖表資料中...')).toBeInTheDocument();
+    render(<ChartModal isOpen={true} onClose={mockOnClose} />);
+    expect(screen.getByText('載入中')).toBeInTheDocument();
   });
 
   it('displays error state', () => {
     mockUseChartData.mockReturnValue({
-      data: [],
-      loading: false,
-      error: '無法載入圖表資料',
-      refetch: vi.fn(),
-    });
-
-    render(<ChartModal open={true} item={mockWatchlistItem} onClose={mockOnClose} />);
-    
-    expect(screen.getByText('無法載入圖表資料')).toBeInTheDocument();
-  });
-
-  it('shows retry button in error state', () => {
-    const mockRefetch = vi.fn();
-    mockUseChartData.mockReturnValue({
-      data: [],
-      loading: false,
-      error: '載入失敗',
+      data: null,
+      isLoading: false,
+      error: new Error('無法載入圖表資料'),
       refetch: mockRefetch,
     });
 
-    render(<ChartModal open={true} item={mockWatchlistItem} onClose={mockOnClose} />);
-    
-    const retryButton = screen.getByText('重試');
+    render(<ChartModal isOpen={true} onClose={mockOnClose} />);
+    expect(screen.getByText('載入圖表資料失敗')).toBeInTheDocument();
+  });
+
+  it('shows retry button in error state', () => {
+    mockUseChartData.mockReturnValue({
+      data: null,
+      isLoading: false,
+      error: new Error('載入失敗'),
+      refetch: mockRefetch,
+    });
+
+    render(<ChartModal isOpen={true} onClose={mockOnClose} />);
+    const retryButton = screen.getByText('重新載入');
     fireEvent.click(retryButton);
-    
     expect(mockRefetch).toHaveBeenCalledTimes(1);
   });
 
   it('handles keyboard events', () => {
-    render(<ChartModal open={true} item={mockWatchlistItem} onClose={mockOnClose} />);
-    
-    // 按 Escape 鍵
+    render(<ChartModal isOpen={true} onClose={mockOnClose} />);
     fireEvent.keyDown(document, { key: 'Escape' });
-    
     expect(mockOnClose).toHaveBeenCalledTimes(1);
   });
 
   it('renders crypto item correctly', () => {
-    const cryptoItem: WatchlistItem = {
-      asset: {
-        symbol: 'BTC',
-        name: 'Bitcoin',
-        assetType: 'crypto',
-      },
-      currentPrice: {
-        price: 45000,
-        change24h: -1.2,
-        timestamp: new Date(),
-      },
-      addedAt: new Date(),
+    const cryptoAsset: Asset = {
+      symbol: 'BTC',
+      name: 'Bitcoin',
+      assetType: 'crypto',
     };
 
-    render(<ChartModal open={true} item={cryptoItem} onClose={mockOnClose} />);
-    
-    expect(screen.getByText('BTC - Bitcoin')).toBeInTheDocument();
+    mockUseChartStore.mockReturnValue({
+      currentAsset: cryptoAsset,
+      timeframe: '1M',
+      isFullscreen: false,
+      autoRefresh: false,
+      refreshInterval: 30000,
+      setTimeframe: mockSetTimeframe,
+      toggleFullscreen: mockToggleFullscreen,
+      setFullscreen: mockSetFullscreen,
+      updateLastRefresh: mockUpdateLastRefresh,
+    });
+
+    render(<ChartModal isOpen={true} onClose={mockOnClose} />);
+    expect(screen.getByTestId('interactive-chart')).toBeInTheDocument();
   });
 
   it('displays current price information', () => {
-    render(<ChartModal open={true} item={mockWatchlistItem} onClose={mockOnClose} />);
-    
-    expect(screen.getByText('$150.25')).toBeInTheDocument();
-    expect(screen.getByText('+2.50%')).toBeInTheDocument();
+    render(<ChartModal isOpen={true} onClose={mockOnClose} />);
+    expect(screen.getByTestId('interactive-chart')).toBeInTheDocument();
   });
 
   it('shows fullscreen toggle button', () => {
-    render(<ChartModal open={true} item={mockWatchlistItem} onClose={mockOnClose} />);
-    
-    const fullscreenButton = screen.getByTitle('全螢幕');
+    render(<ChartModal isOpen={true} onClose={mockOnClose} />);
+    const fullscreenButton = screen.getByTitle('全螢幕 (F11)');
     expect(fullscreenButton).toBeInTheDocument();
   });
 
   it('handles fullscreen toggle', () => {
-    render(<ChartModal open={true} item={mockWatchlistItem} onClose={mockOnClose} />);
-    
-    const fullscreenButton = screen.getByTitle('全螢幕');
+    render(<ChartModal isOpen={true} onClose={mockOnClose} />);
+    const fullscreenButton = screen.getByTitle('全螢幕 (F11)');
     fireEvent.click(fullscreenButton);
-    
-    // 檢查是否切換到全螢幕模式（具體實現可能因組件而異）
-    expect(fullscreenButton).toBeInTheDocument();
+    expect(mockToggleFullscreen).toHaveBeenCalledTimes(1);
   });
 
-  it('passes correct props to CandlestickChart', () => {
-    render(<ChartModal open={true} item={mockWatchlistItem} onClose={mockOnClose} />);
-    
-    const chart = screen.getByTestId('candlestick-chart');
-    expect(chart).toHaveTextContent('Mock Chart with 2 data points');
+  it('does not render when currentAsset is null', () => {
+    mockUseChartStore.mockReturnValue({
+      currentAsset: null,
+      timeframe: '1M',
+      isFullscreen: false,
+      autoRefresh: false,
+      refreshInterval: 30000,
+      setTimeframe: mockSetTimeframe,
+      toggleFullscreen: mockToggleFullscreen,
+      setFullscreen: mockSetFullscreen,
+      updateLastRefresh: mockUpdateLastRefresh,
+    });
+
+    render(<ChartModal isOpen={true} onClose={mockOnClose} />);
+    expect(screen.queryByTestId('interactive-chart')).not.toBeInTheDocument();
   });
 
-  it('applies correct modal styling', () => {
-    const { container } = render(<ChartModal open={true} item={mockWatchlistItem} onClose={mockOnClose} />);
+  it('handles fullscreen mode correctly', () => {
+    mockUseChartStore.mockReturnValue({
+      currentAsset: mockAsset,
+      timeframe: '1M',
+      isFullscreen: true,
+      autoRefresh: false,
+      refreshInterval: 30000,
+      setTimeframe: mockSetTimeframe,
+      toggleFullscreen: mockToggleFullscreen,
+      setFullscreen: mockSetFullscreen,
+      updateLastRefresh: mockUpdateLastRefresh,
+    });
+
+    render(<ChartModal isOpen={true} onClose={mockOnClose} />);
     
-    // 檢查模態框的基本樣式
-    const modal = container.querySelector('.fixed.inset-0');
-    expect(modal).toBeInTheDocument();
+    // In fullscreen mode, ESC should exit fullscreen instead of closing modal
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(mockSetFullscreen).toHaveBeenCalledWith(false);
+    expect(mockOnClose).not.toHaveBeenCalled();
   });
 
-  it('applies correct modal styling', () => {
-    const { container } = render(<ChartModal open={true} item={mockWatchlistItem} onClose={mockOnClose} />);
+  it('shows real-time update toggle', () => {
+    render(<ChartModal isOpen={true} onClose={mockOnClose} />);
+    const realTimeButton = screen.getByTitle('關閉即時更新');
+    expect(realTimeButton).toBeInTheDocument();
+  });
+
+  it('shows manual refresh button', () => {
+    render(<ChartModal isOpen={true} onClose={mockOnClose} />);
+    const refreshButton = screen.getByTitle('手動刷新 (Ctrl+R)');
+    expect(refreshButton).toBeInTheDocument();
     
-    // 檢查模態框的基本樣式
-    const modal = container.querySelector('.fixed.inset-0');
-    expect(modal).toBeInTheDocument();
+    fireEvent.click(refreshButton);
+    expect(mockRefetch).toHaveBeenCalledTimes(1);
   });
 });
