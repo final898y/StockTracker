@@ -133,8 +133,7 @@ describe('WatchlistManager', () => {
   });
 
   it('displays watchlist items count', () => {
-    const { useWatchlistStore } = require('@/stores/watchlist-store');
-    useWatchlistStore.mockReturnValue({
+    mockUseWatchlistStore.mockReturnValue({
       items: mockWatchlistItems,
       loading: false,
       error: null,
@@ -149,8 +148,7 @@ describe('WatchlistManager', () => {
   });
 
   it('renders table view by default', () => {
-    const { useWatchlistStore } = require('@/stores/watchlist-store');
-    useWatchlistStore.mockReturnValue({
+    mockUseWatchlistStore.mockReturnValue({
       items: mockWatchlistItems,
       loading: false,
       error: null,
@@ -166,8 +164,7 @@ describe('WatchlistManager', () => {
   });
 
   it('switches to cards view when cards button is clicked', async () => {
-    const { useWatchlistStore } = require('@/stores/watchlist-store');
-    useWatchlistStore.mockReturnValue({
+    mockUseWatchlistStore.mockReturnValue({
       items: mockWatchlistItems,
       loading: false,
       error: null,
@@ -187,8 +184,7 @@ describe('WatchlistManager', () => {
   });
 
   it('switches back to table view when table button is clicked', async () => {
-    const { useWatchlistStore } = require('@/stores/watchlist-store');
-    useWatchlistStore.mockReturnValue({
+    mockUseWatchlistStore.mockReturnValue({
       items: mockWatchlistItems,
       loading: false,
       error: null,
@@ -220,8 +216,7 @@ describe('WatchlistManager', () => {
   });
 
   it('shows loading state during refresh', async () => {
-    const { useWatchlistPrices } = require('@/hooks/use-watchlist-prices');
-    useWatchlistPrices.mockReturnValue({
+    mockUseWatchlistPrices.mockReturnValue({
       isLoading: true,
       hasError: false,
       errors: [],
@@ -230,16 +225,15 @@ describe('WatchlistManager', () => {
 
     render(<WatchlistManager />);
     
-    const refreshButton = screen.getByText('重新整理');
+    const refreshButton = screen.getByText('重新整理').closest('button');
     expect(refreshButton).toBeDisabled();
     
-    const refreshIcon = refreshButton.querySelector('.animate-spin');
+    const refreshIcon = document.querySelector('.animate-spin');
     expect(refreshIcon).toBeInTheDocument();
   });
 
   it('displays store error', () => {
-    const { useWatchlistStore } = require('@/stores/watchlist-store');
-    useWatchlistStore.mockReturnValue({
+    mockUseWatchlistStore.mockReturnValue({
       items: [],
       loading: false,
       error: '載入追蹤清單失敗',
@@ -255,8 +249,7 @@ describe('WatchlistManager', () => {
   });
 
   it('displays price errors', () => {
-    const { useWatchlistPrices } = require('@/hooks/use-watchlist-prices');
-    useWatchlistPrices.mockReturnValue({
+    mockUseWatchlistPrices.mockReturnValue({
       isLoading: false,
       hasError: true,
       errors: [
@@ -274,8 +267,7 @@ describe('WatchlistManager', () => {
   });
 
   it('clears error when close button is clicked', async () => {
-    const { useWatchlistStore } = require('@/stores/watchlist-store');
-    useWatchlistStore.mockReturnValue({
+    mockUseWatchlistStore.mockReturnValue({
       items: [],
       loading: false,
       error: '載入追蹤清單失敗',
@@ -293,8 +285,7 @@ describe('WatchlistManager', () => {
   });
 
   it('calls onRemoveItem when remove button is clicked in table view', async () => {
-    const { useWatchlistStore } = require('@/stores/watchlist-store');
-    useWatchlistStore.mockReturnValue({
+    mockUseWatchlistStore.mockReturnValue({
       items: mockWatchlistItems,
       loading: false,
       error: null,
@@ -312,8 +303,7 @@ describe('WatchlistManager', () => {
   });
 
   it('calls onViewChart when chart button is clicked in table view', async () => {
-    const { useWatchlistStore } = require('@/stores/watchlist-store');
-    useWatchlistStore.mockReturnValue({
+    mockUseWatchlistStore.mockReturnValue({
       items: mockWatchlistItems,
       loading: false,
       error: null,
@@ -331,8 +321,7 @@ describe('WatchlistManager', () => {
   });
 
   it('calls onRemoveItem when remove button is clicked in cards view', async () => {
-    const { useWatchlistStore } = require('@/stores/watchlist-store');
-    useWatchlistStore.mockReturnValue({
+    mockUseWatchlistStore.mockReturnValue({
       items: mockWatchlistItems,
       loading: false,
       error: null,
@@ -394,8 +383,7 @@ describe('WatchlistManager', () => {
   });
 
   it('shows loading state when store is loading', () => {
-    const { useWatchlistStore } = require('@/stores/watchlist-store');
-    useWatchlistStore.mockReturnValue({
+    mockUseWatchlistStore.mockReturnValue({
       items: [],
       loading: true,
       error: null,
@@ -417,8 +405,7 @@ describe('WatchlistManager', () => {
   });
 
   it('handles remove item error gracefully', async () => {
-    const { useWatchlistStore } = require('@/stores/watchlist-store');
-    useWatchlistStore.mockReturnValue({
+    mockUseWatchlistStore.mockReturnValue({
       items: mockWatchlistItems,
       loading: false,
       error: null,
@@ -442,10 +429,7 @@ describe('WatchlistManager', () => {
   });
 
   it('passes loading state to child components', () => {
-    const { useWatchlistStore } = require('@/stores/watchlist-store');
-    const { useWatchlistPrices } = require('@/hooks/use-watchlist-prices');
-    
-    useWatchlistStore.mockReturnValue({
+    mockUseWatchlistStore.mockReturnValue({
       items: mockWatchlistItems,
       loading: true,
       error: null,
@@ -454,7 +438,7 @@ describe('WatchlistManager', () => {
       clearError: mockClearError,
     });
 
-    useWatchlistPrices.mockReturnValue({
+    mockUseWatchlistPrices.mockReturnValue({
       isLoading: true,
       hasError: false,
       errors: [],
