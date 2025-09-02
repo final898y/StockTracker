@@ -5,27 +5,29 @@ import { CandlestickChart } from '../CandlestickChart';
 import { CandlestickData } from '@/types';
 
 // Mock lightweight-charts
-const mockChart = {
-  addSeries: vi.fn(),
-  subscribeCrosshairMove: vi.fn(),
-  unsubscribeCrosshairMove: vi.fn(),
-  remove: vi.fn(),
-  applyOptions: vi.fn(),
-  timeScale: vi.fn(() => ({
-    fitContent: vi.fn(),
-  })),
-};
+vi.mock('lightweight-charts', () => {
+  const mockChart = {
+    addSeries: vi.fn(),
+    subscribeCrosshairMove: vi.fn(),
+    unsubscribeCrosshairMove: vi.fn(),
+    remove: vi.fn(),
+    applyOptions: vi.fn(),
+    timeScale: vi.fn(() => ({
+      fitContent: vi.fn(),
+    })),
+  };
 
-const mockSeries = {
-  setData: vi.fn(),
-};
+  const mockSeries = {
+    setData: vi.fn(),
+  };
 
-const mockCreateChart = vi.fn(() => mockChart);
+  const mockCreateChart = vi.fn(() => mockChart);
 
-vi.mock('lightweight-charts', () => ({
-  createChart: mockCreateChart,
-  CandlestickSeries: {},
-}));
+  return {
+    createChart: mockCreateChart,
+    CandlestickSeries: {},
+  };
+});
 
 // Mock ResizeObserver
 global.ResizeObserver = vi.fn().mockImplementation((callback) => ({
@@ -66,7 +68,6 @@ describe('CandlestickChart', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mockChart.addSeries.mockReturnValue(mockSeries);
   });
 
   it('renders chart container', () => {

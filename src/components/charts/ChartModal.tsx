@@ -47,7 +47,7 @@ export function ChartModal({ isOpen, onClose }: ChartModalProps) {
     refetch();
     updateLastRefresh();
     setLastUpdateTime(new Date());
-  }, [refetch, updateLastRefresh]);
+  }, [refetch]); // 移除 updateLastRefresh 依賴
 
   // 監聽資料更新
   useEffect(() => {
@@ -55,7 +55,7 @@ export function ChartModal({ isOpen, onClose }: ChartModalProps) {
       setLastUpdateTime(new Date());
       updateLastRefresh();
     }
-  }, [chartResponse, updateLastRefresh]);
+  }, [chartResponse]); // 移除 updateLastRefresh 依賴以避免無限循環
 
   // ESC 鍵關閉模態框和全螢幕控制
   useEffect(() => {

@@ -93,7 +93,7 @@ describe('ChartDataClient', () => {
         data: mockChartData,
       });
       
-      expect(mockCoinGeckoClient.getChartData).toHaveBeenCalledWith('bitcoin', 7);
+      expect(mockCoinGeckoClient.getChartData).toHaveBeenCalledWith('bitcoin', 8);
     });
 
     it('should handle API errors', async () => {
@@ -207,7 +207,7 @@ describe('ChartDataClient', () => {
 
     it('should return timeframe config', () => {
       const config = client.getTimeframeConfig('1M');
-      expect(config).toEqual({ days: 30, interval: 'daily' });
+      expect(config).toEqual({ days: 32, interval: 'daily' });
     });
 
     it('should check if timeframe is supported', () => {

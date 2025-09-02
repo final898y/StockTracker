@@ -4,26 +4,17 @@ import userEvent from '@testing-library/user-event';
 import { vi } from 'vitest';
 import { SearchBar } from '../SearchBar';
 import { StockSearchResult, CryptoSearchResult } from '@/types';
+import { useUnifiedSearch } from '@/hooks/use-unified-search';
 
 // Mock the unified search hook
 const mockSearch = vi.fn();
 const mockClear = vi.fn();
 
 vi.mock('@/hooks/use-unified-search', () => ({
-  useUnifiedSearch: vi.fn(() => ({
-    query: '',
-    stockResults: [],
-    cryptoResults: [],
-    loading: false,
-    error: null,
-    searchHistory: [],
-    search: mockSearch,
-    clear: mockClear,
-    hasResults: false,
-    stockCount: 0,
-    cryptoCount: 0,
-  })),
+  useUnifiedSearch: vi.fn(),
 }));
+
+const mockUseUnifiedSearch = vi.mocked(useUnifiedSearch);
 
 const mockStockResults: StockSearchResult[] = [
   {
@@ -63,11 +54,11 @@ describe('SearchBar', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    const { useUnifiedSearch } = require('@/hooks/use-unified-search');
-    useUnifiedSearch.mockReturnValue({
+    mockUseUnifiedSearch.mockReturnValue({
       query: '',
       stockResults: [],
       cryptoResults: [],
+      allResults: [],
       loading: false,
       error: null,
       searchHistory: [],
@@ -76,6 +67,13 @@ describe('SearchBar', () => {
       hasResults: false,
       stockCount: 0,
       cryptoCount: 0,
+      totalResults: 0,
+      isStockLoading: false,
+      isCryptoLoading: false,
+      stockError: null,
+      cryptoError: null,
+      refetch: vi.fn(),
+      setQuery: vi.fn(),
     });
   });
 

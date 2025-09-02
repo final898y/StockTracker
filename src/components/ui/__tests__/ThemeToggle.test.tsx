@@ -3,34 +3,27 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { vi } from 'vitest';
 import { ThemeToggle, ThemeIndicator } from '../ThemeToggle';
+import { useThemeToggle } from '@/contexts/theme-context';
 
 // Mock the theme context
 const mockSetLightTheme = vi.fn();
 const mockSetDarkTheme = vi.fn();
 const mockSetSystemTheme = vi.fn();
 const mockToggleTheme = vi.fn();
+const mockSetTheme = vi.fn();
 
 vi.mock('@/contexts/theme-context', () => ({
-  useThemeToggle: vi.fn(() => ({
-    theme: 'light',
-    isLight: true,
-    isDark: false,
-    isSystem: false,
-    actualTheme: 'light',
-    setLightTheme: mockSetLightTheme,
-    setDarkTheme: mockSetDarkTheme,
-    setSystemTheme: mockSetSystemTheme,
-    toggleTheme: mockToggleTheme,
-  })),
+  useThemeToggle: vi.fn(),
 }));
+
+const mockUseThemeToggle = vi.mocked(useThemeToggle);
 
 describe('ThemeToggle', () => {
   const user = userEvent.setup();
 
   beforeEach(() => {
     vi.clearAllMocks();
-    const { useThemeToggle } = require('@/contexts/theme-context');
-    useThemeToggle.mockReturnValue({
+    mockUseThemeToggle.mockReturnValue({
       theme: 'light',
       isLight: true,
       isDark: false,
@@ -40,6 +33,7 @@ describe('ThemeToggle', () => {
       setDarkTheme: mockSetDarkTheme,
       setSystemTheme: mockSetSystemTheme,
       toggleTheme: mockToggleTheme,
+      setTheme: mockSetTheme,
     });
   });
 
@@ -61,8 +55,7 @@ describe('ThemeToggle', () => {
     });
 
     it('shows moon icon for dark theme', () => {
-      const { useThemeToggle } = require('@/contexts/theme-context');
-      useThemeToggle.mockReturnValue({
+      mockUseThemeToggle.mockReturnValue({
         theme: 'dark',
         isLight: false,
         isDark: true,
@@ -72,6 +65,7 @@ describe('ThemeToggle', () => {
         setDarkTheme: mockSetDarkTheme,
         setSystemTheme: mockSetSystemTheme,
         toggleTheme: mockToggleTheme,
+        setTheme: mockSetTheme,
       });
 
       render(<ThemeToggle />);
@@ -81,8 +75,7 @@ describe('ThemeToggle', () => {
     });
 
     it('shows monitor icon for system theme', () => {
-      const { useThemeToggle } = require('@/contexts/theme-context');
-      useThemeToggle.mockReturnValue({
+      mockUseThemeToggle.mockReturnValue({
         theme: 'system',
         isLight: false,
         isDark: false,
@@ -92,6 +85,7 @@ describe('ThemeToggle', () => {
         setDarkTheme: mockSetDarkTheme,
         setSystemTheme: mockSetSystemTheme,
         toggleTheme: mockToggleTheme,
+        setTheme: mockSetTheme,
       });
 
       render(<ThemeToggle />);
@@ -150,8 +144,7 @@ describe('ThemeToggle', () => {
     });
 
     it('shows correct state for dark theme', () => {
-      const { useThemeToggle } = require('@/contexts/theme-context');
-      useThemeToggle.mockReturnValue({
+      mockUseThemeToggle.mockReturnValue({
         theme: 'dark',
         isLight: false,
         isDark: true,
@@ -161,6 +154,7 @@ describe('ThemeToggle', () => {
         setDarkTheme: mockSetDarkTheme,
         setSystemTheme: mockSetSystemTheme,
         toggleTheme: mockToggleTheme,
+        setTheme: mockSetTheme,
       });
 
       render(<ThemeToggle variant="switch" />);
@@ -179,8 +173,7 @@ describe('ThemeToggle', () => {
     });
 
     it('calls setLightTheme when switching from dark to light', async () => {
-      const { useThemeToggle } = require('@/contexts/theme-context');
-      useThemeToggle.mockReturnValue({
+      mockUseThemeToggle.mockReturnValue({
         theme: 'dark',
         isLight: false,
         isDark: true,
@@ -190,6 +183,7 @@ describe('ThemeToggle', () => {
         setDarkTheme: mockSetDarkTheme,
         setSystemTheme: mockSetSystemTheme,
         toggleTheme: mockToggleTheme,
+        setTheme: mockSetTheme,
       });
 
       render(<ThemeToggle variant="switch" />);
@@ -260,8 +254,7 @@ describe('ThemeToggle', () => {
     });
 
     it('highlights system theme when active', () => {
-      const { useThemeToggle } = require('@/contexts/theme-context');
-      useThemeToggle.mockReturnValue({
+      mockUseThemeToggle.mockReturnValue({
         theme: 'system',
         isLight: false,
         isDark: false,
@@ -271,6 +264,7 @@ describe('ThemeToggle', () => {
         setDarkTheme: mockSetDarkTheme,
         setSystemTheme: mockSetSystemTheme,
         toggleTheme: mockToggleTheme,
+        setTheme: mockSetTheme,
       });
 
       render(<ThemeToggle variant="dropdown" />);
@@ -290,8 +284,7 @@ describe('ThemeToggle', () => {
 describe('ThemeIndicator', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    const { useThemeToggle } = require('@/contexts/theme-context');
-    useThemeToggle.mockReturnValue({
+    mockUseThemeToggle.mockReturnValue({
       theme: 'light',
       isLight: true,
       isDark: false,
@@ -301,6 +294,7 @@ describe('ThemeIndicator', () => {
       setDarkTheme: mockSetDarkTheme,
       setSystemTheme: mockSetSystemTheme,
       toggleTheme: mockToggleTheme,
+      setTheme: mockSetTheme,
     });
   });
 
@@ -314,8 +308,7 @@ describe('ThemeIndicator', () => {
   });
 
   it('renders theme indicator for dark theme', () => {
-    const { useThemeToggle } = require('@/contexts/theme-context');
-    useThemeToggle.mockReturnValue({
+    mockUseThemeToggle.mockReturnValue({
       theme: 'dark',
       isLight: false,
       isDark: true,
@@ -325,6 +318,7 @@ describe('ThemeIndicator', () => {
       setDarkTheme: mockSetDarkTheme,
       setSystemTheme: mockSetSystemTheme,
       toggleTheme: mockToggleTheme,
+      setTheme: mockSetTheme,
     });
 
     render(<ThemeIndicator />);
@@ -336,8 +330,7 @@ describe('ThemeIndicator', () => {
   });
 
   it('renders theme indicator for system theme', () => {
-    const { useThemeToggle } = require('@/contexts/theme-context');
-    useThemeToggle.mockReturnValue({
+    mockUseThemeToggle.mockReturnValue({
       theme: 'system',
       isLight: false,
       isDark: false,
@@ -347,6 +340,7 @@ describe('ThemeIndicator', () => {
       setDarkTheme: mockSetDarkTheme,
       setSystemTheme: mockSetSystemTheme,
       toggleTheme: mockToggleTheme,
+      setTheme: mockSetTheme,
     });
 
     render(<ThemeIndicator />);

@@ -3,6 +3,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { vi } from 'vitest';
 import { ChartModal } from '../ChartModal';
 import { WatchlistItem } from '@/types';
+import { useChartData } from '@/hooks/use-chart-data';
 
 // Mock the chart components
 vi.mock('../CandlestickChart', () => ({
@@ -25,33 +26,11 @@ vi.mock('../TimeRangeSelector', () => ({
 }));
 
 // Mock the chart data hook
-const mockUseChartData = vi.fn(() => ({
-  data: [
-    {
-      openPrice: 100,
-      highPrice: 110,
-      lowPrice: 95,
-      closePrice: 105,
-      volume: 1000,
-      timestamp: new Date('2024-01-01'),
-    },
-    {
-      openPrice: 105,
-      highPrice: 115,
-      lowPrice: 100,
-      closePrice: 110,
-      volume: 1200,
-      timestamp: new Date('2024-01-02'),
-    },
-  ],
-  loading: false,
-  error: null,
-  refetch: vi.fn(),
+vi.mock('@/hooks/use-chart-data', () => ({
+  useChartData: vi.fn(),
 }));
 
-vi.mock('@/hooks/use-chart-data', () => ({
-  useChartData: mockUseChartData,
-}));
+const mockUseChartData = vi.mocked(useChartData);
 
 const mockWatchlistItem: WatchlistItem = {
   asset: {
@@ -74,6 +53,29 @@ describe('ChartModal', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    mockUseChartData.mockReturnValue({
+      data: [
+        {
+          openPrice: 100,
+          highPrice: 110,
+          lowPrice: 95,
+          closePrice: 105,
+          volume: 1000,
+          timestamp: new Date('2024-01-01'),
+        },
+        {
+          openPrice: 105,
+          highPrice: 115,
+          lowPrice: 100,
+          closePrice: 110,
+          volume: 1200,
+          timestamp: new Date('2024-01-02'),
+        },
+      ],
+      loading: false,
+      error: null,
+      refetch: vi.fn(),
+    });
   });
 
   it('renders when open is true', () => {

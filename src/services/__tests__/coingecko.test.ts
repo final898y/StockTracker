@@ -56,6 +56,7 @@ describe('CoinGeckoClient', () => {
         ok: false,
         status: 500,
         statusText: 'Internal Server Error',
+        text: vi.fn().mockResolvedValue('Internal Server Error'),
       });
 
       await expect(client.searchCrypto('bitcoin')).rejects.toMatchObject({
@@ -69,6 +70,7 @@ describe('CoinGeckoClient', () => {
         ok: false,
         status: 429,
         statusText: 'Too Many Requests',
+        text: vi.fn().mockResolvedValue('Too Many Requests'),
       });
 
       await expect(client.searchCrypto('bitcoin')).rejects.toMatchObject({

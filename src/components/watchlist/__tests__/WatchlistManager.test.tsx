@@ -4,6 +4,8 @@ import userEvent from '@testing-library/user-event';
 import { vi } from 'vitest';
 import { WatchlistManager } from '../WatchlistManager';
 import { WatchlistItem } from '@/types';
+import { useWatchlistStore } from '@/stores/watchlist-store';
+import { useWatchlistPrices } from '@/hooks/use-watchlist-prices';
 
 // Mock the stores and hooks
 const mockRemoveFromWatchlist = vi.fn();
@@ -12,24 +14,15 @@ const mockClearError = vi.fn();
 const mockRefetch = vi.fn();
 
 vi.mock('@/stores/watchlist-store', () => ({
-  useWatchlistStore: vi.fn(() => ({
-    items: [],
-    loading: false,
-    error: null,
-    removeFromWatchlist: mockRemoveFromWatchlist,
-    loadWatchlist: mockLoadWatchlist,
-    clearError: mockClearError,
-  })),
+  useWatchlistStore: vi.fn(),
 }));
 
 vi.mock('@/hooks/use-watchlist-prices', () => ({
-  useWatchlistPrices: vi.fn(() => ({
-    isLoading: false,
-    hasError: false,
-    errors: [],
-    refetch: mockRefetch,
-  })),
+  useWatchlistPrices: vi.fn(),
 }));
+
+const mockUseWatchlistStore = vi.mocked(useWatchlistStore);
+const mockUseWatchlistPrices = vi.mocked(useWatchlistPrices);
 
 // Mock the child components
 vi.mock('../WatchlistTable', () => ({
@@ -100,19 +93,25 @@ describe('WatchlistManager', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    const { useWatchlistStore } = require('@/stores/watchlist-store');
-    const { useWatchlistPrices } = require('@/hooks/use-watchlist-prices');
-    
-    useWatchlistStore.mockReturnValue({
+    mockUseWatchlistStore.mockReturnValue({
       items: [],
       loading: false,
       error: null,
       removeFromWatchlist: mockRemoveFromWatchlist,
       loadWatchlist: mockLoadWatchlist,
       clearError: mockClearError,
+      addToWatchlist: vi.fn(),
+      clearWatchlist: vi.fn(),
+      updatePrice: vi.fn(),
+      updatePrices: vi.fn(),
+      setLoading: vi.fn(),
+      setError: vi.fn(),
+      getWatchlistItem: vi.fn(),
+      isInWatchlist: vi.fn(),
+      getWatchlistSymbols: vi.fn(),
     });
 
-    useWatchlistPrices.mockReturnValue({
+    mockUseWatchlistPrices.mockReturnValue({
       isLoading: false,
       hasError: false,
       errors: [],
