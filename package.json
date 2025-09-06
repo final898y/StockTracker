@@ -16,8 +16,6 @@
     "test:e2e:headed": "playwright test --headed",
     "test:e2e:debug": "playwright test --debug",
     "test:e2e:report": "playwright show-report",
-    "doc:generate": "node scripts/generate-task-doc.js",
-    "setup:hooks": "node scripts/setup-git-hooks.js",
     "commit:check": "echo '檢查 commit 格式標準...' && git log --oneline -5"
   },
   "dependencies": {
