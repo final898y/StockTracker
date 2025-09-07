@@ -72,7 +72,7 @@ Co-authored-by: AI Assistant <ai@kiro/Gemini.dev>
 2. **中文標題**: 簡潔的中文描述
 3. **中文詳細說明**: 使用條列式中文說明
 4. **相關檔案**: `相關檔案: path/to/files`
-5. **協作標籤**: `Co-authored-by: AI Assistant <ai@kiro.dev>`
+5. **協作標籤**: `Co-authored-by: AI Assistant <ai@kiro/Gemini.dev>`
 
 ## 🔥 每次執行必須遵循的檢查清單
 
@@ -81,7 +81,7 @@ Co-authored-by: AI Assistant <ai@kiro/Gemini.dev>
 - [ ] 包含正確的類型前綴格式
 - [ ] 任務相關提交必須包含對應需求編號
 - [ ] 包含相關檔案清單
-- [ ] 包含 `Co-authored-by: AI Assistant <ai@kiro.dev>` 標籤
+- [ ] 包含 `Co-authored-by: AI Assistant <ai@kiro/Gemini.dev>` 標籤
 - [ ] 詳細說明使用條列式格式
 - [ ] 標題長度不超過50字元
 - [ ] 詳細說明每行不超過72字元

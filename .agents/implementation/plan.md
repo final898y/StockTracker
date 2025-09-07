@@ -104,6 +104,14 @@
   - 撰寫技術文件和擴展指南
   - _Requirements: 7.1, 7.2, 7.3, 7.4, 8.1-8.5_
 
+- [ ] 18. 替換Alpha Vantage API為IEX Cloud API
+  - 研究IEX Cloud API文件與資料格式
+  - 實作IEX Cloud API客戶端服務
+  - 更新API Routes以使用IEX Cloud服務
+  - 調整前端組件以適應新的API回應（若有必要）
+  - 更新相關單元測試與E2E測試
+  - _Requirements: 1.1, 5.1, 5.3, 5.4, 8.1-8.5_
+
 - [x] 16. 建立任務文件化系統
   - 建立完整的docs目錄結構
   - 建立標準化的文件模板
