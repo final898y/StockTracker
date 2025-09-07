@@ -61,7 +61,7 @@ describe('SearchResults', () => {
   it('renders empty state when no results', () => {
     render(<SearchResults loading={false} stockResults={[]} cryptoResults={[]} />);
     
-    expect(screen.getByText('請使用上方搜尋框搜尋股票或加密貨幣')).toBeInTheDocument();
+    expect(screen.getByText('找不到相關結果')).toBeInTheDocument();
   });
 
   it('renders stock results correctly', () => {
@@ -195,7 +195,7 @@ describe('SearchResults', () => {
       />
     );
     
-    expect(screen.getByText('請使用上方搜尋框搜尋股票或加密貨幣')).toBeInTheDocument();
+    expect(screen.getByText('找不到相關結果')).toBeInTheDocument();
   });
 
   it('applies custom className', () => {
