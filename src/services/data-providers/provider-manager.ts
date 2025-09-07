@@ -1,6 +1,7 @@
 import { alphaVantageClient } from '../alpha-vantage';
 import { coinGeckoClient } from '../coingecko';
-import { IStockDataProvider, ICryptoDataProvider } from './index';
+import { taiwanStockClient } from '../taiwan-stock';
+import { IStockDataProvider, ICryptoDataProvider } from './index;
 
 export class FinancialDataProviderManager {
   private stockProvider: IStockDataProvider;
@@ -21,9 +22,12 @@ export class FinancialDataProviderManager {
 
   // This method can be extended to select providers based on market/country
   // For now, it returns the default stock or crypto provider
-  getProvider(assetType: 'stock' | 'crypto'): IStockDataProvider | ICryptoDataProvider {
+  getProvider(assetType: 'stock' | 'crypto', market?: string): IStockDataProvider | ICryptoDataProvider {
     if (assetType === 'stock') {
-      return this.stockProvider;
+      if (market === 'TW') {
+        return taiwanStockClient;
+      }
+      return this.stockProvider; // Default to Alpha Vantage for other stocks
     } else if (assetType === 'crypto') {
       return this.cryptoProvider;
     }

@@ -34,26 +34,48 @@
 - **實作:**
     - 在 `src/types/index.ts` 的 `Asset` 介面中新增了 `market?: string;` 屬性，例如 `'US'`、`'TW'`、`'Crypto'`。這為台股等特定市場的資料擴展提供了直接的支援。
 
+### 5. 實作市場配置系統與台股資料提供者整合
+
+為了支援不同市場的交易時間和規則，並整合台股資料提供者，我們進行了以下實作：
+
+- **市場配置系統:**
+    - **決策:** 建立一個集中的配置檔案來管理不同市場的交易時間、時區等資訊，便於未來擴展和維護。
+    - **實作:**
+        - 新增 `src/constants/market-config.ts` 檔案。
+        - 定義 `MarketConfig` 和 `MarketTradingHours` 介面，規範市場配置的結構。
+        - `MARKET_CONFIGS` 陣列包含了美國、台灣和加密貨幣市場的範例配置，其中包含了交易時間和時區資訊。
+        - 提供了 `getMarketConfig` 輔助函數，用於根據市場 ID 快速獲取對應的配置。
+
+- **台股資料提供者佔位符:**
+    - **決策:** 為了未來整合台股資料，先建立一個符合 `IStockDataProvider` 介面的佔位符，確保架構的完整性。
+    - **實作:**
+        - 新增 `src/services/taiwan-stock.ts` 檔案。
+        - 實作 `TaiwanStockClient` 類別，它實現了 `IStockDataProvider` 介面，並提供了 `searchStocks`、`getStockDetails` 和 `getStockChartData` 方法的模擬實作。這些方法目前返回模擬數據，並發出警告，提示其尚未完全實現。
+
+- **更新 FinancialDataProviderManager:**
+    - **決策:** 擴展現有的資料提供者管理器，使其能夠根據資產的市場屬性動態選擇正確的股票資料提供者。
+    - **實作:**
+        - 修改 `src/services/data-providers/provider-manager.ts`。
+        - 引入 `taiwanStockClient`。
+        - 更新 `getProvider` 方法，使其接受一個可選的 `market` 參數。當 `assetType` 為 `'stock'` 且 `market` 為 `'TW'` 時，返回 `taiwanStockClient`；否則，默認返回 `alphaVantageClient`。
+
 ## 對應的 Git Commit 內容與訊息
 
 ```
-feat(task-17): 建立模組化資料提供者架構
+feat(task-17): 實作市場配置與台股資料提供者整合
 
-此提交為未來擴展奠定基礎：
-- 引入 `IStockDataProvider` 和 `ICryptoDataProvider` 介面。
-- 實作 `FinancialDataProviderManager` 以管理不同資料來源。
-- 標準化 Alpha Vantage 和 CoinGecko 客戶端的圖表資料回應。
-- 在 `Asset` 介面中新增 `market` 屬性以支援特定市場資料。
+此提交完成了任務 17 的以下部分：
+- 實作市場交易時間和規則的配置系統，新增 `src/constants/market-config.ts`。
+- 建立台股資料提供者佔位符 `src/services/taiwan-stock.ts`。
+- 更新 `FinancialDataProviderManager` 以根據市場類型選擇資料提供者，支援台股。
 
-這些變更將有助於更輕鬆地整合新的市場類型（例如台股），並提高資料獲取服務的整體模組化程度。
+這些變更進一步強化了系統的未來擴展性，特別是針對不同市場的資料整合。
 
 對應需求: 7.1, 7.2, 7.3, 7.4, 8.1-8.5
 相關檔案:
-- src/services/alpha-vantage.ts
-- src/services/coingecko.ts
-- src/services/data-providers/index.ts
+- src/constants/market-config.ts
+- src/services/taiwan-stock.ts
 - src/services/data-providers/provider-manager.ts
-- src/types/index.ts
 
 Co-authored-by: AI Assistant <ai@kiro/Gemini.dev>
 ```
