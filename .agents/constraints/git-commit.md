@@ -20,7 +20,7 @@ feat(task-X): 中文標題
 - 對應需求: X.X, X.X
 - 相關檔案: path/to/files
 
-Co-authored-by: AI Assistant <ai@kiro.dev>
+Co-authored-by: AI Assistant <ai@kiro/Gemini.dev>
 ```
 
 ### 2. 一般提交（用於系統級變更）
@@ -32,7 +32,7 @@ feat: 中文標題
 - 具體變更內容 2
 - 相關檔案: path/to/files
 
-Co-authored-by: AI Assistant <ai@kiro.dev>
+Co-authored-by: AI Assistant <ai@kiro/Gemini.dev>
 ```
 
 ## 提交類型 (Type)

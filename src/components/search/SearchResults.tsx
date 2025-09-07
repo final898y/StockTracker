@@ -13,6 +13,7 @@ interface SearchResultsProps {
   error?: string;
   onAddToWatchlist?: (asset: StockSearchResult | CryptoSearchResult, type: 'stock' | 'crypto') => void;
   onViewChart?: (asset: StockSearchResult | CryptoSearchResult, type: 'stock' | 'crypto') => void;
+  activeFilter: 'all' | 'stock' | 'crypto';
   className?: string;
 }
 
@@ -23,12 +24,18 @@ export function SearchResults({
   error,
   onAddToWatchlist,
   onViewChart,
+  activeFilter,
   className = ""
 }: SearchResultsProps) {
   // 防護措施：確保 results 不為 undefined
   const safeStockResults = stockResults || [];
   const safeCryptoResults = cryptoResults || [];
   const hasResults = safeStockResults.length > 0 || safeCryptoResults.length > 0;
+
+  const filteredStockResults = activeFilter === 'crypto' ? [] : safeStockResults;
+  const filteredCryptoResults = activeFilter === 'stock' ? [] : safeCryptoResults;
+
+  const hasFilteredResults = filteredStockResults.length > 0 || filteredCryptoResults.length > 0;
 
   if (loading) {
     return (
@@ -55,12 +62,12 @@ export function SearchResults({
     );
   }
 
-  if (!hasResults) {
+  if (!hasFilteredResults) {
     return (
       <div className={`space-y-4 ${className}`}>
         <div className="text-center py-8">
           <div className="text-gray-500 dark:text-gray-400">
-            請使用上方搜尋框搜尋股票或加密貨幣
+            找不到相關結果
           </div>
         </div>
       </div>
@@ -68,19 +75,19 @@ export function SearchResults({
   }
 
   return (
-    <div className={`space-y-6 ${className}`}>
+    <div className={`space-y-6 ${className}`} data-testid="search-results">
       {/* 股票結果 */}
-      {safeStockResults.length > 0 && (
+      {filteredStockResults.length > 0 && (
         <div>
           <div className="flex items-center space-x-2 mb-4">
             <TrendingUpIcon className="h-5 w-5 text-blue-500" />
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-              股票 ({safeStockResults.length})
+              股票 ({filteredStockResults.length})
             </h3>
           </div>
           
           <div className="grid gap-3">
-            {safeStockResults.map((stock) => (
+            {filteredStockResults.map((stock) => (
               <div
                 key={stock.symbol}
                 className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 
@@ -150,17 +157,17 @@ export function SearchResults({
       )}
 
       {/* 加密貨幣結果 */}
-      {safeCryptoResults.length > 0 && (
+      {filteredCryptoResults.length > 0 && (
         <div>
-          <div className="flex items-center space-x-2 mb-4">
+          <div className="flex items-center space-x-2 mb-4" data-testid="crypto-results-header">
             <CoinsIcon className="h-5 w-5 text-orange-500" />
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-              加密貨幣 ({safeCryptoResults.length})
+              加密貨幣 ({filteredCryptoResults.length})
             </h3>
           </div>
           
           <div className="grid gap-3">
-            {safeCryptoResults.map((crypto) => (
+            {filteredCryptoResults.map((crypto) => (
               <div
                 key={crypto.id}
                 className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 

@@ -82,7 +82,7 @@ export function WatchlistTable({
 
   if (items.length === 0) {
     return (
-      <div className={`text-center py-12 ${className}`}>
+      <div className={`text-center py-12 ${className}`} data-testid="empty-watchlist">
         <div className="text-gray-500 dark:text-gray-400">
           <BarChart3Icon className="h-12 w-12 mx-auto mb-4 opacity-50" />
           <h3 className="text-lg font-medium mb-2">追蹤清單是空的</h3>

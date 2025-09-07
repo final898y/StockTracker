@@ -66,6 +66,7 @@ export const TEST_CONFIG = {
     // 標籤切換
     stockTab: '[data-testid="stock-tab"]',
     cryptoTab: '[data-testid="crypto-tab"]',
+    searchTab: '[data-testid="search-tab"]',
     
     // 追蹤清單
     watchlistTable: '[data-testid="watchlist-table"]',

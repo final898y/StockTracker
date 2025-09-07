@@ -27,7 +27,7 @@ export function DashboardLayout({
       <PageTransition>
         <main className={`pb-8 ${className}`}>
           {(title || subtitle || actions) && (
-            <div className="bg-muted/30 border-b border-border">
+            <div className="bg-muted/30 border-b border-border" data-testid="header">
               <Container>
                 <div className="py-6 sm:py-8">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">

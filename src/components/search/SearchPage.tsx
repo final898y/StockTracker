@@ -7,6 +7,7 @@ import { StockSearchResult, CryptoSearchResult } from '@/types';
 import { SearchBar } from './SearchBar';
 import { SearchResults } from './SearchResults';
 import { SearchSuggestions } from './SearchSuggestions';
+import { Flex } from '@/components/layout/ResponsiveLayout';
 
 import { Asset } from '@/types';
 
@@ -25,6 +26,7 @@ export function SearchPage({
     asset: StockSearchResult | CryptoSearchResult;
     type: 'stock' | 'crypto';
   } | null>(null);
+  const [activeFilter, setActiveFilter] = useState<'all' | 'stock' | 'crypto'>('all');
 
   const {
     query,
@@ -94,6 +96,36 @@ export function SearchPage({
         />
       </div>
 
+      {/* 篩選標籤 */}
+      <Flex justify="center" gap="sm" className="mt-4">
+        <button
+          data-testid="stock-tab"
+          onClick={() => setActiveFilter('stock')}
+          className={`px-4 py-2 rounded-lg text-sm font-medium
+            ${activeFilter === 'stock' ? 'bg-blue-500 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200'}
+          `}
+        >
+          股票
+        </button>
+        <button
+          data-testid="crypto-tab"
+          onClick={() => setActiveFilter('crypto')}
+          className={`px-4 py-2 rounded-lg text-sm font-medium
+            ${activeFilter === 'crypto' ? 'bg-blue-500 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200'}
+          `}
+        >
+          加密貨幣
+        </button>
+        <button
+          onClick={() => setActiveFilter('all')}
+          className={`px-4 py-2 rounded-lg text-sm font-medium
+            ${activeFilter === 'all' ? 'bg-blue-500 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200'}
+          `}
+        >
+          全部
+        </button>
+      </Flex>
+
       {/* 搜尋建議（當沒有查詢時顯示） */}
       {showSuggestions && (
         <div className="max-w-4xl mx-auto">
@@ -116,6 +148,7 @@ export function SearchPage({
             error={error || undefined}
             onAddToWatchlist={handleAddToWatchlist}
             onViewChart={handleViewChart}
+            activeFilter={activeFilter}
           />
         </div>
       )}

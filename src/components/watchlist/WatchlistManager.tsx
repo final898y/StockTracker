@@ -199,7 +199,7 @@ export function WatchlistManager({
           {/* 空狀態時的添加卡片 */}
           {items.length === 0 && !isLoading && onAddAsset && (
             <div className="col-span-full">
-              <div className="text-center py-12">
+              <div className="text-center py-12" data-testid="empty-watchlist">
                 <div className="text-gray-500 dark:text-gray-400">
                   <PlusIcon className="h-12 w-12 mx-auto mb-4 opacity-50" />
                   <h3 className="text-lg font-medium mb-2">開始追蹤資產</h3>

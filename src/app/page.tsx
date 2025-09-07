@@ -1,197 +1,165 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { WatchlistManager } from '@/components/watchlist';
+import { SearchPage } from '@/components/search';
+import { ChartModal } from '@/components/charts';
+import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { Flex } from '@/components/layout/ResponsiveLayout';
+import { FadeTransition } from '@/components/ui/Transitions';
+import { useChartStore } from '@/stores/chart-store';
+import { useWatchlistStore } from '@/stores/watchlist-store';
+import { Asset, WatchlistItem, StockSearchResult, CryptoSearchResult } from '@/types';
 import { 
-  TrendingUpIcon, 
-  BarChart3Icon, 
   SearchIcon, 
-  SmartphoneIcon,
-  ArrowRightIcon,
-  CheckCircleIcon
+  PlusIcon, 
+  BarChart3Icon,
+  RefreshCwIcon
 } from 'lucide-react';
 
-export default function Home() {
-  const router = useRouter();
-  const [isLoading, setIsLoading] = useState(true);
+export default function HomePage() {
+  const [activeTab, setActiveTab] = useState<'watchlist' | 'search'>('watchlist');
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const { isModalOpen, closeModal, openModal } = useChartStore();
+  const { addToWatchlist } = useWatchlistStore();
 
-  useEffect(() => {
-    // 延遲自動重定向，讓使用者看到歡迎頁面
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 1000);
-
-    return () => clearTimeout(timer);
-  }, []);
-
-  const handleEnterDashboard = () => {
-    router.push('/dashboard');
+  // 處理查看圖表
+  const handleViewChart = (item: WatchlistItem) => {
+    openModal(item.asset, '1D');
   };
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
-        <div className="text-center">
-          <div className="flex items-center justify-center w-16 h-16 bg-blue-500 rounded-full mb-6 mx-auto">
-            <TrendingUpIcon className="h-8 w-8 text-white" />
-          </div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">股票追蹤系統</h1>
-          <p className="text-gray-600 dark:text-gray-400 mb-8">正在載入儀表板...</p>
-          
-          <div className="flex items-center justify-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          </div>
-        </div>
+  // 處理從搜尋頁面查看圖表
+  const handleViewChartFromSearch = (asset: Asset) => {
+    openModal(asset, '1D');
+  };
+
+  // 處理添加到追蹤清單
+  const handleAddToWatchlist = async (
+    asset: StockSearchResult | CryptoSearchResult, 
+    type: 'stock' | 'crypto'
+  ) => {
+    try {
+      const watchlistAsset: Asset = {
+        symbol: asset.symbol,
+        name: asset.name,
+        assetType: type,
+        exchange: type === 'stock' ? (asset as StockSearchResult).exchange : undefined,
+      };
+      
+      await addToWatchlist(watchlistAsset);
+      
+      // 切換到追蹤清單標籤以顯示新添加的項目
+      setActiveTab('watchlist');
+    } catch (error) {
+      console.error('添加到追蹤清單失敗:', error);
+    }
+  };
+
+  // 處理切換到搜尋頁面
+  const handleSwitchToSearch = () => {
+    setActiveTab('search');
+  };
+
+  // 處理刷新
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    // 這裡可以添加刷新邏輯
+    setTimeout(() => setIsRefreshing(false), 1000);
+  };
+
+  const dashboardActions = (
+    <Flex gap="sm" align="center">
+      {/* 標籤切換 */}
+      <div className="flex items-center bg-muted rounded-lg p-1">
+        <button
+          onClick={() => setActiveTab('watchlist')}
+          className={`
+            flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium
+            transition-all duration-200
+            ${activeTab === 'watchlist'
+              ? 'bg-background text-foreground shadow-sm'
+              : 'text-muted-foreground hover:text-foreground'
+            }
+          `}
+        >
+          <BarChart3Icon className="h-4 w-4" />
+          <span>追蹤清單</span>
+        </button>
+        <button
+          onClick={() => setActiveTab('search')}
+          data-testid="search-tab"
+          className={`
+            flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium
+            transition-all duration-200
+            ${activeTab === 'search'
+              ? 'bg-background text-foreground shadow-sm'
+              : 'text-muted-foreground hover:text-foreground'
+            }
+          `}
+        >
+          <SearchIcon className="h-4 w-4" />
+          <span>搜尋資產</span>
+        </button>
       </div>
-    );
-  }
+
+      {/* 操作按鈕 */}
+      <button
+        onClick={handleRefresh}
+        disabled={isRefreshing}
+        className="btn btn-outline btn-sm"
+        title="刷新資料"
+      >
+        <RefreshCwIcon className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+      </button>
+
+      {activeTab === 'watchlist' && (
+        <button
+          onClick={handleSwitchToSearch}
+          className="btn btn-primary btn-sm"
+        >
+          <PlusIcon className="h-4 w-4" />
+          <span className="hidden sm:inline ml-2">添加資產</span>
+        </button>
+      )}
+    </Flex>
+  );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/5 to-primary/10">
-      {/* 導航欄 */}
-      <nav className="bg-background/80 backdrop-blur-sm border-b border-border">
-        <div className="container-responsive">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center space-x-3">
-              <div className="flex items-center justify-center w-8 h-8 bg-primary rounded-lg">
-                <TrendingUpIcon className="h-5 w-5 text-primary-foreground" />
-              </div>
-              <span className="text-xl font-bold text-foreground">
-                股票追蹤器
-              </span>
-            </div>
-            <button
-              onClick={handleEnterDashboard}
-              className="btn btn-primary btn-md flex items-center space-x-2"
-            >
-              <span>進入應用</span>
-              <ArrowRightIcon className="h-4 w-4" />
-            </button>
-          </div>
-        </div>
-      </nav>
+    <DashboardLayout
+      title={activeTab === 'watchlist' ? '投資組合總覽' : '探索新資產'}
+      subtitle={
+        activeTab === 'watchlist' 
+          ? '追蹤您感興趣的股票和加密貨幣價格變動'
+          : '搜尋並添加新的股票或加密貨幣到您的追蹤清單'
+      }
+      actions={dashboardActions}
+    >
+      {/* 內容區域 */}
+      <FadeTransition show={true} duration="normal">
+        {activeTab === 'watchlist' && (
+          <section data-testid="watchlist-section">
+            <WatchlistManager 
+              onViewChart={handleViewChart}
+              onAddAsset={handleSwitchToSearch}
+            />
+          </section>
+        )}
 
-      {/* 主要內容 */}
-      <main className="container-responsive py-12 sm:py-20">
-        <div className="text-center mb-16">
-          {/* 主標題 */}
-          <div className="flex items-center justify-center w-20 h-20 bg-blue-500 rounded-2xl mb-8 mx-auto">
-            <TrendingUpIcon className="h-10 w-10 text-white" />
-          </div>
-          
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 dark:text-white mb-6">
-            專業的
-            <span className="text-blue-600 dark:text-blue-400"> 投資追蹤 </span>
-            工具
-          </h1>
-          
-          <p className="text-xl text-gray-600 dark:text-gray-400 mb-8 max-w-3xl mx-auto">
-            追蹤美股和加密貨幣價格，查看專業K線圖表，管理您的投資組合。
-            簡潔易用的介面，讓投資決策更加明智。
-          </p>
+        {activeTab === 'search' && (
+          <section data-testid="search-section">
+            <SearchPage 
+              onViewChart={handleViewChartFromSearch}
+              onAddToWatchlist={handleAddToWatchlist}
+            />
+          </section>
+        )}
+      </FadeTransition>
 
-          {/* CTA 按鈕 */}
-          <div className="flex flex-col sm:flex-row gap-4 items-center justify-center">
-            <button
-              onClick={handleEnterDashboard}
-              className="flex items-center space-x-2 px-8 py-4 bg-blue-500 hover:bg-blue-600 
-                       text-white rounded-xl transition-colors text-lg font-medium shadow-lg 
-                       hover:shadow-xl transform hover:-translate-y-0.5"
-            >
-              <span>開始使用</span>
-              <ArrowRightIcon className="h-5 w-5" />
-            </button>
-            
-            <button
-              onClick={() => router.push('/test-chart')}
-              className="flex items-center space-x-2 px-8 py-4 bg-white dark:bg-gray-800 
-                       hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-900 dark:text-white 
-                       border border-gray-300 dark:border-gray-600 rounded-xl transition-colors 
-                       text-lg font-medium"
-            >
-              <BarChart3Icon className="h-5 w-5" />
-              <span>查看圖表示例</span>
-            </button>
-          </div>
-        </div>
-
-        {/* 功能特色 */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg">
-            <div className="flex items-center justify-center w-12 h-12 bg-blue-100 dark:bg-blue-900/30 
-                          rounded-xl mb-6">
-              <SearchIcon className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-            </div>
-            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-              智能搜尋
-            </h3>
-            <p className="text-gray-600 dark:text-gray-400">
-              快速搜尋美股和加密貨幣，支援股票代碼和公司名稱搜尋，
-              輕鬆找到您想要追蹤的資產。
-            </p>
-          </div>
-
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg">
-            <div className="flex items-center justify-center w-12 h-12 bg-green-100 dark:bg-green-900/30 
-                          rounded-xl mb-6">
-              <BarChart3Icon className="h-6 w-6 text-green-600 dark:text-green-400" />
-            </div>
-            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-              專業圖表
-            </h3>
-            <p className="text-gray-600 dark:text-gray-400">
-              採用 TradingView 圖表庫，提供專業級K線圖表，
-              支援多種時間範圍和技術分析工具。
-            </p>
-          </div>
-
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg">
-            <div className="flex items-center justify-center w-12 h-12 bg-purple-100 dark:bg-purple-900/30 
-                          rounded-xl mb-6">
-              <SmartphoneIcon className="h-6 w-6 text-purple-600 dark:text-purple-400" />
-            </div>
-            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-              響應式設計
-            </h3>
-            <p className="text-gray-600 dark:text-gray-400">
-              完美適配桌面和行動裝置，無論何時何地都能
-              輕鬆管理您的投資組合。
-            </p>
-          </div>
-        </div>
-
-        {/* 功能清單 */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg">
-          <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-8 text-center">
-            主要功能
-          </h3>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {[
-              '追蹤美股和加密貨幣價格',
-              '即時價格更新和變動提醒',
-              '專業K線圖表和技術分析',
-              '個人化追蹤清單管理',
-              '響應式設計支援行動裝置',
-              '本地資料存儲保護隱私'
-            ].map((feature, index) => (
-              <div key={index} className="flex items-center space-x-3">
-                <CheckCircleIcon className="h-5 w-5 text-green-500 flex-shrink-0" />
-                <span className="text-gray-700 dark:text-gray-300">{feature}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </main>
-
-      {/* 頁腳 */}
-      <footer className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="text-center text-gray-600 dark:text-gray-400">
-            <p>&copy; 2024 股票追蹤器. 專為投資者打造的追蹤工具.</p>
-          </div>
-        </div>
-      </footer>
-    </div>
+      {/* 圖表模態框 */}
+      <ChartModal
+        isOpen={isModalOpen}
+        onClose={closeModal}
+      />
+    </DashboardLayout>
   );
 }

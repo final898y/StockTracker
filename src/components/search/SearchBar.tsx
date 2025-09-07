@@ -108,6 +108,7 @@ export function SearchBar({
         <input
           ref={inputRef}
           type="text"
+          data-testid="search-input"
           value={inputValue}
           onChange={handleInputChange}
           onKeyDown={handleKeyDown}
