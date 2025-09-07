@@ -8,8 +8,19 @@ import { useChartStore } from '@/stores/chart-store';
 
 // Mock the InteractiveChart component
 vi.mock('../InteractiveChart', () => ({
-  InteractiveChart: ({ data, ...props }: any) => (
-    <div data-testid="interactive-chart" {...props}>
+  InteractiveChart: ({ 
+    data, 
+    asset,
+    timeframe,
+    onTimeframeChange,
+    onRefresh,
+    isLoading,
+    minHeight,
+    maxHeight,
+    aspectRatio,
+    ...rest 
+  }: any) => (
+    <div data-testid="interactive-chart" {...rest}>
       <div data-testid="candlestick-chart">Mock Chart with {data?.length || 0} data points</div>
       <div data-testid="time-range-selector">
         <button>1天</button>

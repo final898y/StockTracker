@@ -51,31 +51,53 @@ describe('CoinGeckoClient', () => {
     });
 
     it('should handle API errors', async () => {
-      // Mock all retry attempts to return the same error response
-      mockFetch.mockResolvedValue({
+      vi.useFakeTimers();
+      mockFetch.mockImplementation(async () => ({
         ok: false,
         status: 500,
         statusText: 'Internal Server Error',
-        text: vi.fn().mockResolvedValue('Internal Server Error'),
-      });
+        text: async () => 'Internal Server Error',
+      }));
 
-      await expect(client.searchCrypto('bitcoin')).rejects.toMatchObject({
-        errorCode: ERROR_CODES.EXTERNAL_API_ERROR,
-      });
+      try {
+        const promise = client.searchCrypto('bitcoin');
+        await vi.runAllTimersAsync();
+        await promise; // Should throw
+        throw new Error('Test should have failed');
+      } catch (e: any) {
+        expect(e).toBeInstanceOf(Error);
+        const errorBody = JSON.parse(e.message);
+        expect(errorBody).toMatchObject({
+          errorCode: ERROR_CODES.EXTERNAL_API_ERROR,
+        });
+      } finally {
+        vi.useRealTimers();
+      }
     });
 
     it('should handle rate limit errors', async () => {
-      // Mock all retry attempts to return the same rate limit response
-      mockFetch.mockResolvedValue({
+      vi.useFakeTimers();
+      mockFetch.mockImplementation(async () => ({
         ok: false,
         status: 429,
         statusText: 'Too Many Requests',
-        text: vi.fn().mockResolvedValue('Too Many Requests'),
-      });
+        text: async () => 'Too Many Requests',
+      }));
 
-      await expect(client.searchCrypto('bitcoin')).rejects.toMatchObject({
-        errorCode: ERROR_CODES.API_RATE_LIMIT,
-      });
+      try {
+        const promise = client.searchCrypto('bitcoin');
+        await vi.runAllTimersAsync();
+        await promise; // Should throw
+        throw new Error('Test should have failed');
+      } catch (e: any) {
+        expect(e).toBeInstanceOf(Error);
+        const errorBody = JSON.parse(e.message);
+        expect(errorBody).toMatchObject({
+          errorCode: ERROR_CODES.API_RATE_LIMIT,
+        });
+      } finally {
+        vi.useRealTimers();
+      }
     });
   });
 

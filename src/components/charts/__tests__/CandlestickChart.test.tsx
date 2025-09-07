@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, act } from '@testing-library/react';
 import { vi } from 'vitest';
 import { CandlestickChart } from '../CandlestickChart';
 import { CandlestickData } from '@/types';
@@ -278,7 +278,9 @@ describe('CandlestickChart', () => {
       }]]),
     };
 
-    crosshairCallback(mockParam);
+    act(() => {
+      crosshairCallback(mockParam);
+    });
     
     // Check if tooltip is rendered (this would require more complex setup to fully test)
     expect(crosshairCallback).toBeDefined();
@@ -296,7 +298,9 @@ describe('CandlestickChart', () => {
       seriesData: new Map(),
     };
 
-    crosshairCallback(mockParam);
+    act(() => {
+      crosshairCallback(mockParam);
+    });
     
     expect(crosshairCallback).toBeDefined();
   });
@@ -317,7 +321,9 @@ describe('CandlestickChart', () => {
       }]]),
     };
 
-    crosshairCallback(mockParam);
+    act(() => {
+      crosshairCallback(mockParam);
+    });
     
     // Just verify the callback was called correctly
     expect(crosshairCallback).toBeDefined();

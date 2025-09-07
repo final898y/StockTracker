@@ -134,7 +134,7 @@ export class CoinGeckoClient {
         return fallbackResults;
       } catch (fallbackError) {
         console.error('CoinGecko fallback search also failed:', fallbackError);
-        throw this.handleError(error); // Throw original error
+        return Promise.reject(this.handleError(fallbackError)); // Throw fallback error
       }
     }
   }
@@ -422,44 +422,46 @@ export class CoinGeckoClient {
   /**
    * Handle and standardize errors
    */
-  private handleError(error: unknown): ErrorResponse {
+  private handleError(error: unknown): Error {
+    let errorResponse: ErrorResponse;
+
     if (error instanceof Error) {
       if (error.message.includes('Rate limit') || error.message.includes('rate limit') || error.message.includes('429')) {
-        return {
+        errorResponse = {
           errorCode: ERROR_CODES.API_RATE_LIMIT,
           message: 'API rate limit exceeded',
           details: { originalError: error.message },
         };
-      }
-
-      if (error.message.includes('not found') || error.message.includes('404')) {
-        return {
+      } else if (error.message.includes('not found') || error.message.includes('404')) {
+        errorResponse = {
           errorCode: ERROR_CODES.ASSET_NOT_FOUND,
           message: 'Cryptocurrency not found',
           details: { originalError: error.message },
         };
-      }
-
-      if (error.name === 'AbortError' || error.message.includes('timeout')) {
-        return {
+      } else if (error.name === 'AbortError' || error.message.includes('timeout')) {
+        errorResponse = {
           errorCode: ERROR_CODES.NETWORK_ERROR,
           message: 'Request timeout',
           details: { originalError: error.message },
         };
+      } else {
+        errorResponse = {
+          errorCode: ERROR_CODES.EXTERNAL_API_ERROR,
+          message: error.message,
+          details: { originalError: error.message },
+        };
       }
-
-      return {
+    } else {
+      errorResponse = {
         errorCode: ERROR_CODES.EXTERNAL_API_ERROR,
-        message: error.message,
-        details: { originalError: error.message },
+        message: 'Unknown error occurred',
+        details: { originalError: String(error) },
       };
     }
-
-    return {
-      errorCode: ERROR_CODES.EXTERNAL_API_ERROR,
-      message: 'Unknown error occurred',
-      details: { originalError: String(error) },
-    };
+    
+    const customError = new Error(JSON.stringify(errorResponse));
+    customError.name = errorResponse.errorCode;
+    return customError;
   }
 
   /**
