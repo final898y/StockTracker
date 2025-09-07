@@ -11,6 +11,7 @@ export interface Asset {
   name: string;
   assetType: 'stock' | 'crypto';
   exchange?: string;
+  market?: string; // e.g., 'US', 'TW', 'Crypto'
 }
 
 export interface PriceData {

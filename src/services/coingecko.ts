@@ -47,7 +47,7 @@ interface CoinGeckoChartResponse {
   total_volumes: [number, number][];
 }
 
-export class CoinGeckoClient {
+export class CoinGeckoClient implements ICryptoDataProvider {
   private readonly apiKey?: string;
   private readonly baseUrl: string;
   private readonly timeout: number;
@@ -266,16 +266,45 @@ export class CoinGeckoClient {
   /**
    * Get historical chart data for a cryptocurrency
    */
-  async getChartData(coinId: string, days: number = 30): Promise<ChartDataPoint[]> {
+  async getChartData(coinId: string, timeframe: TimeframeType): Promise<ChartResponse> {
     if (!coinId.trim()) {
       throw new Error('Coin ID is required');
+    }
+
+    let days: number;
+    let interval: 'daily' | 'hourly';
+
+    switch (timeframe) {
+      case '1D':
+        days = 1;
+        interval = 'hourly';
+        break;
+      case '1W':
+        days = 7;
+        interval = 'daily';
+        break;
+      case '1M':
+        days = 30;
+        interval = 'daily';
+        break;
+      case '3M':
+        days = 90;
+        interval = 'daily';
+        break;
+      case '1Y':
+        days = 365;
+        interval = 'daily';
+        break;
+      default:
+        days = 30;
+        interval = 'daily';
     }
 
     try {
       const response = await this.makeRequest<CoinGeckoChartResponse>(`/coins/${coinId.toLowerCase()}/market_chart`, {
         vs_currency: 'usd',
         days: days.toString(),
-        interval: days <= 1 ? 'hourly' : 'daily',
+        interval: interval,
       });
 
       if (!response.prices || response.prices.length === 0) {
@@ -304,7 +333,7 @@ export class CoinGeckoClient {
         });
       }
 
-      return chartData;
+      return { symbol: coinId, timeframe, data: chartData };
     } catch (error) {
       console.error('CoinGecko chart data error:', error);
       throw this.handleError(error);

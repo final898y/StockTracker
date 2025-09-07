@@ -54,7 +54,7 @@ interface AlphaVantageTimeSeriesResponse {
   }>;
 }
 
-export class AlphaVantageClient {
+export class AlphaVantageClient implements IStockDataProvider {
   private readonly apiKey: string;
   private readonly baseUrl = 'https://www.alphavantage.co/query';
   private readonly timeout: number;
@@ -161,14 +161,14 @@ export class AlphaVantageClient {
   /**
    * Get historical chart data for a stock
    */
-  async getChartData(symbol: string): Promise<ChartDataPoint[]> {
+  async getChartData(symbol: string, timeframe: TimeframeType): Promise<ChartResponse> {
     if (!symbol.trim()) {
       throw new Error('Stock symbol is required');
     }
 
     // Return mock data if API key is not configured (for development)
     if (!this.isConfigured()) {
-      return this.getMockChartData();
+      return { symbol, timeframe, data: this.getMockChartData() };
     }
 
     try {
@@ -199,7 +199,7 @@ export class AlphaVantageClient {
           });
         });
 
-      return chartData;
+      return { symbol, timeframe, data: chartData };
     } catch (error) {
       console.error('Alpha Vantage chart data error:', error);
       throw this.handleError(error);
